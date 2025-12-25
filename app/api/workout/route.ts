@@ -40,12 +40,13 @@ export async function POST(request: Request) {
       streakData?.longest_streak || 0
     )
 
-    // Get current week start date (UTC)
+    // Get current week start date (UTC) - CRITICAL: Use UTC for both to match RPC functions
     const now = new Date()
     const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
     const weekStart = startOfDay(startOfWeek(utcDate, { weekStartsOn: 1 }))
     const weekStartString = weekStart.toISOString().split('T')[0]
-    const today = startOfDay(new Date())
+    // Use UTC for today as well to match week start calculation
+    const today = startOfDay(utcDate)
     const todayString = today.toISOString().split('T')[0]
 
     // Get current goal to determine if this workout completes it (for points calculation)

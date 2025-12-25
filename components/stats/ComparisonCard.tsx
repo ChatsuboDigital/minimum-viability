@@ -72,6 +72,8 @@ export function ComparisonCard() {
   }
 
   const userAhead = currentUserStats.totalWorkouts >= partnerStats.totalWorkouts
+  const userWeeklyStreakAhead = (currentUserStats.weeklyStreak || 0) > (partnerStats.weeklyStreak || 0)
+  const partnerWeeklyStreakAhead = (partnerStats.weeklyStreak || 0) > (currentUserStats.weeklyStreak || 0)
 
   return (
     <Card className="border-zinc-800 bg-zinc-900/50">
@@ -96,6 +98,12 @@ export function ComparisonCard() {
               <p className="text-xs text-muted-foreground">
                 This week: {currentUserStats.weekCompleted}/4
               </p>
+              {(currentUserStats.weeklyStreak || 0) > 0 && (
+                <p className="text-xs text-zinc-400 flex items-center gap-1">
+                  🔥 {currentUserStats.weeklyStreak} week{currentUserStats.weeklyStreak !== 1 ? 's' : ''}
+                  {userWeeklyStreakAhead && <Trophy className="h-3 w-3 text-yellow-500" />}
+                </p>
+              )}
             </div>
           </div>
           <div className="text-right">
@@ -124,6 +132,12 @@ export function ComparisonCard() {
               <p className="text-xs text-muted-foreground">
                 This week: {partnerStats.weekCompleted}/4
               </p>
+              {(partnerStats.weeklyStreak || 0) > 0 && (
+                <p className="text-xs text-zinc-400 flex items-center gap-1">
+                  🔥 {partnerStats.weeklyStreak} week{partnerStats.weeklyStreak !== 1 ? 's' : ''}
+                  {partnerWeeklyStreakAhead && <Trophy className="h-3 w-3 text-yellow-500" />}
+                </p>
+              )}
             </div>
           </div>
           <div className="text-right">

@@ -28,9 +28,10 @@ export function useNotifications(userId: string | undefined) {
 
   const markAsRead = useMutation({
     mutationFn: async (notificationId: string) => {
+      // Just delete the notification when "read" - keeps database clean
       const { error } = await supabase
         .from('notifications')
-        .update({ read: true })
+        .delete()
         .eq('id', notificationId)
 
       if (error) throw error
@@ -44,9 +45,10 @@ export function useNotifications(userId: string | undefined) {
     mutationFn: async () => {
       if (!userId) throw new Error('User ID required')
 
+      // Delete all unread notifications - keeps database clean
       const { error } = await supabase
         .from('notifications')
-        .update({ read: true })
+        .delete()
         .eq('user_id', userId)
         .eq('read', false)
 

@@ -11,12 +11,17 @@ export interface StreakUpdate {
  * Calculate updated streak based on last session date
  * Grace period: 1 rest day allowed (2 days since last session)
  * Streak breaks if 3+ days since last session
+ *
+ * @param lastWorkoutDate - Last workout date from database
+ * @param currentStreak - Current streak count
+ * @param todayDate - Today's date (should be in Sydney timezone from server)
  */
 export function calculateStreakUpdate(
   lastWorkoutDate: Date | null,
-  currentStreak: number
+  currentStreak: number,
+  todayDate: Date = new Date() // Default for backwards compatibility, but should always pass explicitly
 ): StreakUpdate {
-  const today = startOfDay(new Date())
+  const today = startOfDay(todayDate)
 
   // First session ever
   if (!lastWorkoutDate) {

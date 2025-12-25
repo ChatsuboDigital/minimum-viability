@@ -21,27 +21,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get current streak data for calculation
-    const { data: streakData } = await supabase
-      .from('streaks')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle()
-
-    // Calculate new streak using business logic
-    const streakUpdate = calculateStreakUpdate(
-      streakData?.last_workout_date ? new Date(streakData.last_workout_date) : null,
-      streakData?.current_streak || 0
-    )
-
-    // Calculate longest streak
-    const longestStreak = Math.max(
-      streakUpdate.currentStreak,
-      streakData?.longest_streak || 0
-    )
-
-    // Get current dates in Sydney timezone - CRITICAL: Must match SQL calculation exactly
-    // Use database helper to ensure timezone consistency
+    // Get current dates in Sydney timezone first
     const { data: sydneyDates, error: datesError } = await supabase.rpc(
       'get_sydney_dates'
     )
@@ -56,6 +36,27 @@ export async function POST(request: Request) {
 
     const todayString = sydneyDates.today
     const weekStartString = sydneyDates.weekStart
+    const sydneyToday = new Date(sydneyDates.today + 'T00:00:00') // Parse as local date
+
+    // Get current streak data for calculation
+    const { data: streakData } = await supabase
+      .from('streaks')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    // Calculate new streak using business logic with Sydney date
+    const streakUpdate = calculateStreakUpdate(
+      streakData?.last_workout_date ? new Date(streakData.last_workout_date) : null,
+      streakData?.current_streak || 0,
+      sydneyToday // Pass Sydney date explicitly
+    )
+
+    // Calculate longest streak
+    const longestStreak = Math.max(
+      streakUpdate.currentStreak,
+      streakData?.longest_streak || 0
+    )
 
     // Get current goal to determine if this workout completes it (for points calculation)
     const { data: currentGoal } = await supabase

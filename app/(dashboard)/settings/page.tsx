@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useAuth } from '@/hooks/useAuth'
 import { usePreferences } from '@/hooks/usePreferences'
+import { useProfile } from '@/hooks/useProfile'
 import { toast } from 'sonner'
 import { AlertTriangle } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -27,7 +28,9 @@ export default function SettingsPage() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
   const { preferences, isLoading: preferencesLoading, updatePreferences, isUpdating } = usePreferences()
+  const { profile, isLoading: profileLoading, updateProfile, isUpdating: isUpdatingProfile } = useProfile()
   const [weeklyTarget, setWeeklyTarget] = useState(4)
+  const [displayName, setDisplayName] = useState('')
   const [resetting, setResetting] = useState(false)
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [confirmText, setConfirmText] = useState('')
@@ -39,12 +42,31 @@ export default function SettingsPage() {
     }
   }, [preferences])
 
-  const handleSave = () => {
+  // Update local state when profile loads
+  useEffect(() => {
+    if (profile) {
+      setDisplayName(profile.display_name || profile.username || '')
+    }
+  }, [profile])
+
+  const handleSavePreferences = () => {
     if (weeklyTarget >= 1 && weeklyTarget <= 7) {
       updatePreferences(weeklyTarget)
     } else {
       toast.error('Weekly target must be between 1 and 7')
     }
+  }
+
+  const handleSaveProfile = () => {
+    if (displayName.trim().length === 0) {
+      toast.error('Display name cannot be empty')
+      return
+    }
+    if (displayName.trim().length > 50) {
+      toast.error('Display name is too long')
+      return
+    }
+    updateProfile(displayName.trim())
   }
 
   const handleResetProgress = async () => {
@@ -96,6 +118,35 @@ export default function SettingsPage() {
       </div>
 
       <div className="max-w-2xl space-y-6">
+        {/* Profile */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile</CardTitle>
+            <CardDescription>
+              Set your display name (shown to your partner)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="display-name">Display Name</Label>
+              <Input
+                id="display-name"
+                type="text"
+                maxLength={50}
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Enter your first name"
+              />
+              <p className="text-xs text-muted-foreground">
+                This is how your partner will see you in the app
+              </p>
+            </div>
+            <Button onClick={handleSaveProfile} disabled={isUpdatingProfile || profileLoading}>
+              {isUpdatingProfile ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Weekly Goal */}
         <Card>
           <CardHeader>
@@ -119,7 +170,7 @@ export default function SettingsPage() {
                 Recommended: 3-5 sessions per week
               </p>
             </div>
-            <Button onClick={handleSave} disabled={isUpdating || preferencesLoading}>
+            <Button onClick={handleSavePreferences} disabled={isUpdating || preferencesLoading}>
               {isUpdating ? 'Saving...' : 'Save Changes'}
             </Button>
           </CardContent>

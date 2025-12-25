@@ -15,7 +15,7 @@ BEGIN
     SELECT json_agg(
       json_build_object(
         'userId', u.id,
-        'username', u.username,
+        'username', COALESCE(u.display_name, u.username),
         'avatarColor', u.avatar_color,
         'totalWorkouts', COALESCE(workout_counts.total, 0),
         'totalPoints', COALESCE(workout_counts.points, 0),

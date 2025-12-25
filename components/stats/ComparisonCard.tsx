@@ -46,8 +46,8 @@ export function ComparisonCard() {
     )
   }
 
-  const currentUserStats = stats?.find((s) => s.userId === user?.id)
-  const partnerStats = stats?.find((s) => s.userId !== user?.id)
+  const currentUserStats = stats?.find((s: any) => s.userId === user?.id)
+  const partnerStats = stats?.find((s: any) => s.userId !== user?.id)
 
   // Show empty state when no partner exists
   if (!currentUserStats || !partnerStats) {

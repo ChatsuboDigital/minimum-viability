@@ -21,6 +21,7 @@ import { usePreferences } from '@/hooks/usePreferences'
 import { toast } from 'sonner'
 import { AlertTriangle } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
+import { logger } from '@/lib/logger'
 
 export default function SettingsPage() {
   const { user } = useAuth()

@@ -9,6 +9,18 @@ const envSchema = z.object({
 // Validate environment variables at module load time
 // This will throw a clear error if any required env vars are missing
 const parseEnv = () => {
+  // Skip validation during build time (when vars might not be available)
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
+
+  if (isBuildTime) {
+    // Return safe defaults for build time
+    return {
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'build-time-placeholder',
+      NODE_ENV: (process.env.NODE_ENV as 'development' | 'production' | 'test') || 'production',
+    }
+  }
+
   try {
     return envSchema.parse({
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -17,7 +29,8 @@ const parseEnv = () => {
     })
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const missingVars = error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join('\n')
+      const zodError = error as z.ZodError
+      const missingVars = zodError.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join('\n')
       throw new Error(
         `❌ Invalid environment variables:\n${missingVars}\n\nPlease check your .env.local file.`
       )

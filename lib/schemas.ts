@@ -64,7 +64,8 @@ export function validateRequest<T>(
   } catch (error) {
     if (error instanceof z.ZodError) {
       // Format validation errors into a readable message
-      const errors = error.errors.map((e) => {
+      const zodError = error as z.ZodError
+      const errors = zodError.issues.map((e: z.ZodIssue) => {
         const path = e.path.length > 0 ? `${e.path.join('.')}: ` : ''
         return `${path}${e.message}`
       })

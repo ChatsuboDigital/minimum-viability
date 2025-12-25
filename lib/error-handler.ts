@@ -13,8 +13,9 @@ export function handleApiError(error: unknown, context: string): NextResponse {
 
   // Validation errors - return specific message
   if (error instanceof z.ZodError) {
-    const errorMessages = error.errors
-      .map((e) => `${e.path.join('.')}: ${e.message}`)
+    const zodError = error as z.ZodError
+    const errorMessages = zodError.issues
+      .map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`)
       .join(', ')
     return NextResponse.json(
       { error: `Validation error: ${errorMessages}` },

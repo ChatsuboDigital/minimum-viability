@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useComparisonStats } from '@/hooks/useStats'
 import { useAuth } from '@/hooks/useAuth'
-import { Trophy, Users, Zap } from 'lucide-react'
+import { Trophy, Users } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export function ComparisonCard() {
@@ -120,129 +120,119 @@ export function ComparisonCard() {
   }
 
   return (
-    <Card className={`border-2 bg-gradient-to-br from-zinc-900/90 to-zinc-800/50 ${
-      userAhead ? 'border-yellow-500/30 shadow-lg shadow-yellow-500/10' :
-      partnerAhead ? 'border-blue-500/30 shadow-lg shadow-blue-500/10' :
-      'border-zinc-700/50'
-    }`}>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-center text-lg font-bold flex items-center justify-center gap-2">
-          <Zap className="h-5 w-5 text-yellow-500" />
-          <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-transparent bg-clip-text">
-            RIVALRY DASHBOARD
-          </span>
-          <Zap className="h-5 w-5 text-yellow-500" />
+    <Card className="border-zinc-800 bg-zinc-900/50">
+      <CardHeader>
+        <CardTitle className="text-sm font-medium text-zinc-400">
+          You vs Partner
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Split Screen Battle View */}
+        {/* Split Screen View */}
         <div className="grid grid-cols-2 gap-4">
           {/* Current User Side */}
-          <div className={`relative p-4 rounded-lg border-2 ${
-            userAhead ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-zinc-700/50 bg-zinc-800/30'
-          }`}>
-            {userAhead && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Trophy className="h-6 w-6 text-yellow-500 animate-pulse" />
-              </div>
-            )}
-            <div className="flex flex-col items-center space-y-2">
-              <Avatar className="h-16 w-16 border-2 border-zinc-600">
+          <div className="flex flex-col items-center space-y-3 p-3 rounded-lg border border-zinc-800 bg-zinc-900/30">
+            <div className="relative">
+              <Avatar className="h-12 w-12">
                 <AvatarFallback
                   style={{ backgroundColor: currentUserStats.avatarColor }}
-                  className="text-xl font-bold"
+                  className="text-lg font-semibold"
                 >
                   {currentUserStats.username.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
+              {userAhead && (
+                <div className="absolute -top-1 -right-1">
+                  <Trophy className="h-4 w-4 text-yellow-500" />
+                </div>
+              )}
+            </div>
+            <div className="text-center w-full">
+              <p className="font-medium text-sm truncate">{currentUserStats.username}</p>
+              <p className="text-xs text-zinc-500">You</p>
+            </div>
+
+            {/* Stats */}
+            <div className="w-full space-y-2 pt-1">
               <div className="text-center">
-                <p className="font-bold text-sm">{currentUserStats.username}</p>
-                <p className="text-xs text-yellow-400">(You)</p>
+                <p className="text-2xl font-bold">{currentUserStats.totalWorkouts}</p>
+                <p className="text-xs text-zinc-500">Total</p>
               </div>
 
-              {/* Total Sessions */}
-              <div className="text-center py-2">
-                <p className="text-xs text-zinc-400 uppercase tracking-wide">Total Sessions</p>
-                <p className="text-3xl font-bold text-yellow-400">{currentUserStats.totalWorkouts}</p>
-                <p className="text-xs text-zinc-500">{currentUserStats.totalPoints} XP</p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-500">This week</span>
+                <span className="font-medium">{currentUserStats.weekCompleted}/4</span>
               </div>
 
-              {/* This Week */}
-              <div className="text-center">
-                <p className="text-xs text-zinc-400">This Week</p>
-                <p className="text-lg font-bold">{currentUserStats.weekCompleted}/4</p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-500">XP</span>
+                <span className="font-medium">{currentUserStats.totalPoints}</span>
               </div>
 
-              {/* Streak Flames */}
               {(currentUserStats.weeklyStreak || 0) > 0 && (
-                <div className="text-center">
-                  <p className="text-xs text-zinc-400">Weekly Streak</p>
-                  <p className="text-sm">{userFlames}</p>
-                  <p className="text-xs font-semibold text-orange-400">
-                    {currentUserStats.weeklyStreak} week{currentUserStats.weeklyStreak !== 1 ? 's' : ''}
-                  </p>
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-zinc-800">
+                  <span className="text-zinc-500">Streak</span>
+                  <span className="font-medium">
+                    🔥 {currentUserStats.weeklyStreak} week{currentUserStats.weeklyStreak !== 1 ? 's' : ''}
+                  </span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Partner Side */}
-          <div className={`relative p-4 rounded-lg border-2 ${
-            partnerAhead ? 'border-blue-500/50 bg-blue-500/5' : 'border-zinc-700/50 bg-zinc-800/30'
-          }`}>
-            {partnerAhead && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Trophy className="h-6 w-6 text-blue-500 animate-pulse" />
-              </div>
-            )}
-            <div className="flex flex-col items-center space-y-2">
-              <Avatar className="h-16 w-16 border-2 border-zinc-600">
+          <div className="flex flex-col items-center space-y-3 p-3 rounded-lg border border-zinc-800 bg-zinc-900/30">
+            <div className="relative">
+              <Avatar className="h-12 w-12">
                 <AvatarFallback
                   style={{ backgroundColor: partnerStats.avatarColor }}
-                  className="text-xl font-bold"
+                  className="text-lg font-semibold"
                 >
                   {partnerStats.username.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
+              {partnerAhead && (
+                <div className="absolute -top-1 -right-1">
+                  <Trophy className="h-4 w-4 text-yellow-500" />
+                </div>
+              )}
+            </div>
+            <div className="text-center w-full">
+              <p className="font-medium text-sm truncate">{partnerStats.username}</p>
+              <p className="text-xs text-zinc-500">Partner</p>
+            </div>
+
+            {/* Stats */}
+            <div className="w-full space-y-2 pt-1">
               <div className="text-center">
-                <p className="font-bold text-sm">{partnerStats.username}</p>
-                <p className="text-xs text-blue-400">(Partner)</p>
+                <p className="text-2xl font-bold">{partnerStats.totalWorkouts}</p>
+                <p className="text-xs text-zinc-500">Total</p>
               </div>
 
-              {/* Total Sessions */}
-              <div className="text-center py-2">
-                <p className="text-xs text-zinc-400 uppercase tracking-wide">Total Sessions</p>
-                <p className="text-3xl font-bold text-blue-400">{partnerStats.totalWorkouts}</p>
-                <p className="text-xs text-zinc-500">{partnerStats.totalPoints} XP</p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-500">This week</span>
+                <span className="font-medium">{partnerStats.weekCompleted}/4</span>
               </div>
 
-              {/* This Week */}
-              <div className="text-center">
-                <p className="text-xs text-zinc-400">This Week</p>
-                <p className="text-lg font-bold">{partnerStats.weekCompleted}/4</p>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-zinc-500">XP</span>
+                <span className="font-medium">{partnerStats.totalPoints}</span>
               </div>
 
-              {/* Streak Flames */}
               {(partnerStats.weeklyStreak || 0) > 0 && (
-                <div className="text-center">
-                  <p className="text-xs text-zinc-400">Weekly Streak</p>
-                  <p className="text-sm">{partnerFlames}</p>
-                  <p className="text-xs font-semibold text-orange-400">
-                    {partnerStats.weeklyStreak} week{partnerStats.weeklyStreak !== 1 ? 's' : ''}
-                  </p>
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-zinc-800">
+                  <span className="text-zinc-500">Streak</span>
+                  <span className="font-medium">
+                    🔥 {partnerStats.weeklyStreak} week{partnerStats.weeklyStreak !== 1 ? 's' : ''}
+                  </span>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Rivalry Status Message */}
-        <div className={`text-center p-3 rounded-lg border ${
-          userAhead ? 'bg-yellow-500/10 border-yellow-500/30' :
-          partnerAhead ? 'bg-blue-500/10 border-blue-500/30' :
-          'bg-zinc-800/50 border-zinc-700/50'
-        }`}>
-          <p className="text-sm font-medium">{getStatusMessage()}</p>
+        {/* Status Message */}
+        <div className="text-center py-2 px-3 rounded bg-zinc-900/50 border border-zinc-800">
+          <p className="text-xs text-zinc-400">{getStatusMessage()}</p>
         </div>
       </CardContent>
     </Card>

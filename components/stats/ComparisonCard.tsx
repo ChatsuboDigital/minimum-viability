@@ -102,7 +102,7 @@ export function ComparisonCard() {
     }
     if (userAhead) {
       if (Math.abs(workoutDiff) >= 10) {
-        return `🏆 Crushing it! You're up ${Math.abs(workoutDiff)} workouts - partner needs to catch up!`
+        return `🏆 Crushing it! You're up ${Math.abs(workoutDiff)} sessions - partner needs to catch up!`
       } else if (Math.abs(workoutDiff) >= 5) {
         return `💪 You're ahead by ${Math.abs(workoutDiff)} - keep the pressure on!`
       } else {
@@ -110,9 +110,9 @@ export function ComparisonCard() {
       }
     } else {
       if (Math.abs(workoutDiff) >= 10) {
-        return `💀 Partner's up ${Math.abs(workoutDiff)} workouts - time to get serious!`
+        return `💀 Partner's up ${Math.abs(workoutDiff)} sessions - time to get serious!`
       } else if (Math.abs(workoutDiff) >= 5) {
-        return `👀 Down by ${Math.abs(workoutDiff)} - better hit the gym!`
+        return `👀 Down by ${Math.abs(workoutDiff)} - better lock in!`
       } else {
         return `😤 Partner's ahead by ${Math.abs(workoutDiff)} - catch up time!`
       }
@@ -160,9 +160,9 @@ export function ComparisonCard() {
                 <p className="text-xs text-yellow-400">(You)</p>
               </div>
 
-              {/* Power Level */}
+              {/* Total Sessions */}
               <div className="text-center py-2">
-                <p className="text-xs text-zinc-400 uppercase tracking-wide">Power Level</p>
+                <p className="text-xs text-zinc-400 uppercase tracking-wide">Total Sessions</p>
                 <p className="text-3xl font-bold text-yellow-400">{currentUserStats.totalWorkouts}</p>
                 <p className="text-xs text-zinc-500">{currentUserStats.totalPoints} XP</p>
               </div>
@@ -209,9 +209,9 @@ export function ComparisonCard() {
                 <p className="text-xs text-blue-400">(Partner)</p>
               </div>
 
-              {/* Power Level */}
+              {/* Total Sessions */}
               <div className="text-center py-2">
-                <p className="text-xs text-zinc-400 uppercase tracking-wide">Power Level</p>
+                <p className="text-xs text-zinc-400 uppercase tracking-wide">Total Sessions</p>
                 <p className="text-3xl font-bold text-blue-400">{partnerStats.totalWorkouts}</p>
                 <p className="text-xs text-zinc-500">{partnerStats.totalPoints} XP</p>
               </div>

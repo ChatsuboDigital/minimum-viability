@@ -27,13 +27,15 @@ export default function DashboardPage() {
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-8">
         <div className="text-center space-y-3">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-            {stats?.workedOutToday ? 'Done for today' : 'Keep the streak alive'}
+            {stats?.workedOutToday ? 'Locked in' : 'Show up'}
           </h1>
           <p className="text-lg text-zinc-400">
-            {stats?.currentStreak ? (
-              <>Day {stats.currentStreak} of your journey</>
+            {stats?.workedOutToday ? (
+              <>Tomorrow's another day</>
+            ) : stats?.currentStreak ? (
+              <>Day {stats.currentStreak}</>
             ) : (
-              <>Start your consistency journey</>
+              <>Start the streak</>
             )}
           </p>
         </div>

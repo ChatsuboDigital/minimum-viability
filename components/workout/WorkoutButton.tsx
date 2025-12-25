@@ -23,7 +23,7 @@ export function WorkoutButton({
         disabled
       >
         <Check className="mr-3 h-6 w-6" />
-        Done for today
+        Locked in
       </Button>
     )
   }

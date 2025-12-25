@@ -40,16 +40,20 @@ export function useWorkout() {
 
       return { startTime: Date.now() }
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: async (data, variables, context) => {
       // Dismiss loading toast
       toast.dismiss('workout-loading')
 
-      // Invalidate and refetch queries
-      queryClient.invalidateQueries({ queryKey: ['workouts'] })
-      queryClient.invalidateQueries({ queryKey: ['stats'] })
-      queryClient.invalidateQueries({ queryKey: ['streak'] })
-      queryClient.invalidateQueries({ queryKey: ['weeklyGoal'] })
-      queryClient.invalidateQueries({ queryKey: ['comparison'] })
+      // Aggressively invalidate ALL queries and force refetch
+      await queryClient.invalidateQueries({ queryKey: ['workouts'], refetchType: 'all' })
+      await queryClient.invalidateQueries({ queryKey: ['stats'], refetchType: 'all' })
+      await queryClient.invalidateQueries({ queryKey: ['streak'], refetchType: 'all' })
+      await queryClient.invalidateQueries({ queryKey: ['weeklyGoal'], refetchType: 'all' })
+      await queryClient.invalidateQueries({ queryKey: ['comparison'], refetchType: 'all' })
+      await queryClient.invalidateQueries({ queryKey: ['modules'], refetchType: 'all' })
+
+      // Force immediate refetch
+      await queryClient.refetchQueries({ queryKey: ['stats'], type: 'active' })
 
       // Show success message
       toast.success(`Locked in! +${data.pointsEarned} points`, {

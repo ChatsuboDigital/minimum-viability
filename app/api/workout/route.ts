@@ -53,23 +53,34 @@ export async function POST(request: Request) {
 
     // Get current week's goal
     const weekStart = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })) // Monday at midnight
-    const { data: currentGoal } = await supabase
+    const weekStartString = weekStart.toISOString().split('T')[0]
+
+    console.log('Workout API - Looking for goal with week_start_date:', weekStartString)
+
+    const { data: currentGoal, error: goalQueryError } = await supabase
       .from('goals')
       .select('*')
       .eq('user_id', user.id)
-      .eq('week_start_date', weekStart.toISOString().split('T')[0])
+      .eq('week_start_date', weekStartString)
       .maybeSingle()
+
+    if (goalQueryError) {
+      console.error('Error querying goal:', goalQueryError)
+    }
+
+    console.log('Found goal:', currentGoal)
 
     let isWeeklyGoalComplete = false
     let weeklyGoalData = currentGoal
 
     if (!currentGoal) {
       // Create new weekly goal
+      console.log('Creating new goal for week:', weekStartString)
       const { data: newGoal, error: insertError } = await supabase
         .from('goals')
         .insert({
           user_id: user.id,
-          week_start_date: weekStart.toISOString().split('T')[0],
+          week_start_date: weekStartString,
           target_workouts: 4,
           completed_workouts: 1,
           achieved: false,
@@ -85,12 +96,15 @@ export async function POST(request: Request) {
         )
       }
 
+      console.log('Created new goal:', newGoal)
       weeklyGoalData = newGoal
     } else {
       // Update existing goal
       const newCompleted = currentGoal.completed_workouts + 1
       isWeeklyGoalComplete =
         newCompleted >= currentGoal.target_workouts && !currentGoal.achieved
+
+      console.log(`Updating goal from ${currentGoal.completed_workouts} to ${newCompleted}`)
 
       const { data: updatedGoal, error: updateError } = await supabase
         .from('goals')
@@ -110,6 +124,7 @@ export async function POST(request: Request) {
         )
       }
 
+      console.log('Updated goal:', updatedGoal)
       weeklyGoalData = updatedGoal
     }
 

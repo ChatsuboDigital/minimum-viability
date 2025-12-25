@@ -30,13 +30,16 @@ export function WorkoutButton({
   const [confirmation, setConfirmation] = useState(getRandomConfirmation())
 
   const handleClick = () => {
+    // Show confirmation immediately without dialog delay
     setConfirmation(getRandomConfirmation())
     setShowConfirm(true)
   }
 
   const handleConfirm = () => {
+    // Immediately close dialog and log - no delay
     setShowConfirm(false)
-    logWorkout()
+    // Use setTimeout 0 to ensure dialog closes first, then immediate execution
+    setTimeout(() => logWorkout(), 0)
   }
 
   if (workedOutToday) {

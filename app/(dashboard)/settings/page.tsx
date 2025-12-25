@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { useAuth } from '@/hooks/useAuth'
+import { usePreferences } from '@/hooks/usePreferences'
 import { toast } from 'sonner'
 import { AlertTriangle } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -24,22 +25,24 @@ import { useQueryClient } from '@tanstack/react-query'
 export default function SettingsPage() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { preferences, isLoading: preferencesLoading, updatePreferences, isUpdating } = usePreferences()
   const [weeklyTarget, setWeeklyTarget] = useState(4)
-  const [saving, setSaving] = useState(false)
   const [resetting, setResetting] = useState(false)
   const [showResetDialog, setShowResetDialog] = useState(false)
   const [confirmText, setConfirmText] = useState('')
 
-  const handleSave = async () => {
-    setSaving(true)
-    try {
-      // In a real implementation, you would save this to the database
-      // For now, we'll just show a success message
-      toast.success('Settings saved successfully!')
-    } catch (error) {
-      toast.error('Failed to save settings')
-    } finally {
-      setSaving(false)
+  // Update local state when preferences load
+  useEffect(() => {
+    if (preferences) {
+      setWeeklyTarget(preferences.weekly_target)
+    }
+  }, [preferences])
+
+  const handleSave = () => {
+    if (weeklyTarget >= 1 && weeklyTarget <= 7) {
+      updatePreferences(weeklyTarget)
+    } else {
+      toast.error('Weekly target must be between 1 and 7')
     }
   }
 
@@ -75,7 +78,7 @@ export default function SettingsPage() {
       }, 1000)
     } catch (error: any) {
       toast.error(error.message || 'Failed to reset progress')
-      console.error('Reset error:', error)
+      logger.error('Reset error:', error)
     } finally {
       setResetting(false)
     }
@@ -115,8 +118,8 @@ export default function SettingsPage() {
                 Recommended: 3-5 workouts per week
               </p>
             </div>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? 'Saving...' : 'Save Changes'}
+            <Button onClick={handleSave} disabled={isUpdating || preferencesLoading}>
+              {isUpdating ? 'Saving...' : 'Save Changes'}
             </Button>
           </CardContent>
         </Card>

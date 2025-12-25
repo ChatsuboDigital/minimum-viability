@@ -17,6 +17,7 @@ import {
 import { Label } from '@/components/ui/label'
 import { useModules } from '@/hooks/useModules'
 import { Target, Plus, X } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function MinimumViabilityBox() {
   const { modules, isLoading, addModule, updateModule, deleteModule, isAdding, isUpdating } = useModules()
@@ -55,7 +56,24 @@ export function MinimumViabilityBox() {
   }
 
   if (isLoading) {
-    return null
+    return (
+      <Card className="border-zinc-800 bg-zinc-900/50">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Target className="h-5 w-5 text-zinc-400" />
+              <Skeleton className="h-6 w-48" />
+            </div>
+            <Skeleton className="h-9 w-32" />
+          </div>
+          <Skeleton className="h-4 w-64 mt-1" />
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -64,7 +82,7 @@ export function MinimumViabilityBox() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Target className="h-5 w-5 text-zinc-400" />
-            <CardTitle className="text-lg">Minimum Viability</CardTitle>
+            <CardTitle className="text-lg">Minimum Viability Modules</CardTitle>
           </div>
           <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
@@ -209,10 +227,12 @@ export function MinimumViabilityBox() {
           </div>
         ) : (
           modules.map((module, index) => (
-            <div
+            <button
               key={module.id}
-              className="group flex items-start justify-between p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors cursor-pointer"
+              type="button"
+              className="group flex items-start justify-between p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors cursor-pointer w-full text-left"
               onClick={() => openEditDialog(module)}
+              aria-label={`Edit module: ${module.title}`}
             >
               <div className="flex items-start space-x-3 flex-1">
                 <div className="mt-0.5 text-zinc-500 text-sm font-mono">
@@ -233,10 +253,11 @@ export function MinimumViabilityBox() {
                   deleteModule(module.id)
                 }}
                 className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-500 hover:text-red-400 h-8 w-8 p-0"
+                aria-label={`Delete module: ${module.title}`}
               >
                 <X className="h-4 w-4" />
               </Button>
-            </div>
+            </button>
           ))
         )}
       </CardContent>

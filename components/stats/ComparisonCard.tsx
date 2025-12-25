@@ -4,32 +4,71 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useComparisonStats } from '@/hooks/useStats'
 import { useAuth } from '@/hooks/useAuth'
-import { Trophy } from 'lucide-react'
+import { Trophy, Users } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function ComparisonCard() {
   const { user } = useAuth()
   const { data: stats, isLoading } = useComparisonStats()
 
-  if (isLoading || !stats || stats.length === 0) {
+  if (isLoading) {
     return (
-      <Card>
+      <Card className="border-zinc-800 bg-zinc-900/50">
         <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground">
+          <CardTitle className="text-sm font-medium text-zinc-400">
             You vs Partner
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Loading stats...</p>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+            <Skeleton className="h-6 w-12" />
+          </div>
+          <Skeleton className="h-px w-full" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+            </div>
+            <Skeleton className="h-6 w-12" />
+          </div>
         </CardContent>
       </Card>
     )
   }
 
-  const currentUserStats = stats.find((s) => s.userId === user?.id)
-  const partnerStats = stats.find((s) => s.userId !== user?.id)
+  const currentUserStats = stats?.find((s) => s.userId === user?.id)
+  const partnerStats = stats?.find((s) => s.userId !== user?.id)
 
+  // Show empty state when no partner exists
   if (!currentUserStats || !partnerStats) {
-    return null
+    return (
+      <Card className="border-zinc-800 bg-zinc-900/50">
+        <CardHeader>
+          <CardTitle className="text-sm font-medium text-zinc-400">
+            You vs Partner
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8 text-zinc-500">
+            <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+            <p className="text-sm font-medium mb-1">No partner yet</p>
+            <p className="text-xs text-zinc-600">
+              Invite someone to join and compete together on your fitness journey
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   const userAhead = currentUserStats.totalWorkouts >= partnerStats.totalWorkouts

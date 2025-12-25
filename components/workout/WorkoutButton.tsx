@@ -48,6 +48,7 @@ export function WorkoutButton({
         size="lg"
         className="w-full h-20 text-xl bg-green-500/10 border-2 border-green-500/20 text-green-400 hover:bg-green-500/10 cursor-default"
         disabled
+        aria-label="Workout already completed today"
       >
         <Check className="mr-3 h-6 w-6" />
         Locked in

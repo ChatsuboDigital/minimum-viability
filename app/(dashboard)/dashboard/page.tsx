@@ -8,7 +8,9 @@ import { StatsCard } from '@/components/stats/StatsCard'
 import { MinimumViabilityBox } from '@/components/focus/MinimumViabilityBox'
 import { useUserStats } from '@/hooks/useStats'
 import { useAuth } from '@/hooks/useAuth'
-import { Activity, Award } from 'lucide-react'
+import { Activity, Award, Sparkles } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent } from '@/components/ui/card'
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -16,8 +18,33 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-pulse text-zinc-500">Loading...</div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8 sm:space-y-12">
+        {/* Button skeleton */}
+        <div className="flex flex-col items-center space-y-6">
+          <Skeleton className="h-20 w-full max-w-md" />
+          <div className="flex items-center gap-8">
+            <Skeleton className="h-16 w-20" />
+            <div className="h-8 w-px bg-zinc-800" />
+            <Skeleton className="h-16 w-20" />
+            <div className="h-8 w-px bg-zinc-800" />
+            <Skeleton className="h-16 w-20" />
+          </div>
+        </div>
+
+        {/* Stats grid skeleton */}
+        <div className="space-y-6">
+          <Skeleton className="h-6 w-32" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </div>
+        </div>
+
+        {/* Cards skeleton */}
+        <div className="space-y-4">
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
+        </div>
       </div>
     )
   }
@@ -51,7 +78,7 @@ export default function DashboardPage() {
         {/* Quick Stats Below Button */}
         <div className="flex items-center gap-4 sm:gap-8 text-xs sm:text-sm text-zinc-500">
           <div className="text-center">
-            <div className="text-xl sm:text-2xl font-bold text-white">{stats?.weeklyGoal.completed || 0}/{stats?.weeklyGoal.target || 4}</div>
+            <div className="text-xl sm:text-2xl font-bold text-white">{stats?.weeklyGoal?.completed ?? 0}/{stats?.weeklyGoal?.target ?? 4}</div>
             <div className="whitespace-nowrap">This week</div>
           </div>
           <div className="h-8 w-px bg-zinc-800" />
@@ -66,6 +93,28 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* First-time user welcome message */}
+      {stats?.totalWorkouts === 0 && (
+        <div className="max-w-2xl mx-auto mt-8 px-4">
+          <Card className="border-zinc-800 bg-gradient-to-br from-zinc-900/80 to-zinc-900/50 backdrop-blur">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <Sparkles className="h-6 w-6 text-zinc-400" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-semibold text-white">Welcome to your fitness journey!</h3>
+                  <p className="text-sm text-zinc-400 leading-relaxed">
+                    Track your daily workouts, build streaks, and compete with your partner.
+                    Click the button above to log your first session and start your streak.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Detailed Stats - Secondary */}
       <div className="mt-12 sm:mt-16 space-y-6 pb-8">

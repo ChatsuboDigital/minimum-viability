@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { handleApiError, handleAuthError, handleSuccess } from '@/lib/error-handler'
 
 export async function POST(request: Request) {
   try {
@@ -12,7 +13,7 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return handleAuthError()
     }
 
     // Delete all user data (cascading delete handles related records)
@@ -22,11 +23,7 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
 
     if (workoutsError) {
-      console.error('Error deleting workouts:', workoutsError)
-      return NextResponse.json(
-        { error: 'Failed to delete workouts: ' + workoutsError.message },
-        { status: 500 }
-      )
+      throw new Error('Failed to delete workouts')
     }
 
     const { error: streaksError } = await supabase
@@ -35,11 +32,7 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
 
     if (streaksError) {
-      console.error('Error deleting streaks:', streaksError)
-      return NextResponse.json(
-        { error: 'Failed to delete streaks: ' + streaksError.message },
-        { status: 500 }
-      )
+      throw new Error('Failed to delete streaks')
     }
 
     const { error: goalsError } = await supabase
@@ -48,11 +41,7 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
 
     if (goalsError) {
-      console.error('Error deleting goals:', goalsError)
-      return NextResponse.json(
-        { error: 'Failed to delete goals: ' + goalsError.message },
-        { status: 500 }
-      )
+      throw new Error('Failed to delete goals')
     }
 
     const { error: milestonesError } = await supabase
@@ -61,11 +50,7 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
 
     if (milestonesError) {
-      console.error('Error deleting milestones:', milestonesError)
-      return NextResponse.json(
-        { error: 'Failed to delete milestones: ' + milestonesError.message },
-        { status: 500 }
-      )
+      throw new Error('Failed to delete milestones')
     }
 
     const { error: notificationsError } = await supabase
@@ -74,24 +59,16 @@ export async function POST(request: Request) {
       .eq('user_id', user.id)
 
     if (notificationsError) {
-      console.error('Error deleting notifications:', notificationsError)
-      return NextResponse.json(
-        { error: 'Failed to delete notifications: ' + notificationsError.message },
-        { status: 500 }
-      )
+      throw new Error('Failed to delete notifications')
     }
 
-    console.log('Successfully deleted all data for user:', user.id)
+    logger.debug('Successfully deleted all data for user:', user.id)
 
-    return NextResponse.json({
+    return handleSuccess({
       success: true,
       message: 'All progress has been reset. Time for a fresh start! 🔥',
     })
-  } catch (error: any) {
-    console.error('Error resetting progress:', error)
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    )
+  } catch (error) {
+    return handleApiError(error, 'POST /api/reset-progress')
   }
 }

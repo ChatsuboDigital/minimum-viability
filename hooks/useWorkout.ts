@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
 
 export function useWorkout() {
   const queryClient = useQueryClient()
@@ -63,8 +64,8 @@ export function useWorkout() {
         }
       })
 
-      // Show success immediately (optimistic)
-      toast.success('Locked in! +10 points', {
+      // Show success immediately (optimistic) - don't show points to avoid flickering
+      toast.success('Locked in!', {
         description: 'Session logged!',
         id: 'workout-success',
       })
@@ -73,7 +74,7 @@ export function useWorkout() {
     },
     onSuccess: (data, variables, context) => {
       // Log debug data from server
-      console.log('Server response debug:', data.debug)
+      logger.debug('Server response debug:', data.debug)
 
       // Update with real data from server
       if (context?.userId) {
@@ -92,22 +93,17 @@ export function useWorkout() {
           }
         })
 
-        // Update success toast with real points if different
-        if (data.pointsEarned !== 10) {
-          toast.success(`Locked in! +${data.pointsEarned} points`, {
-            description: data.message,
-            id: 'workout-success',
-          })
-        }
+        // Update success toast with actual points from server
+        toast.success(`Locked in! +${data.pointsEarned} points`, {
+          description: data.message,
+          id: 'workout-success',
+        })
       }
 
-      // Invalidate all queries in background (no await - don't block UI)
-      queryClient.invalidateQueries({ queryKey: ['workouts'] })
+      // Invalidate only affected queries in background (no await - don't block UI)
+      // Only invalidate stats, comparison, and milestones (modules don't change on workout)
       queryClient.invalidateQueries({ queryKey: ['stats'] })
-      queryClient.invalidateQueries({ queryKey: ['streak'] })
-      queryClient.invalidateQueries({ queryKey: ['weeklyGoal'] })
       queryClient.invalidateQueries({ queryKey: ['comparison'] })
-      queryClient.invalidateQueries({ queryKey: ['modules'] })
       queryClient.invalidateQueries({ queryKey: ['milestones'] })
 
       // Show milestone achievements

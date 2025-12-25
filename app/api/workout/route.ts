@@ -1,12 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { startOfWeek, startOfDay, differenceInDays } from 'date-fns'
+import { startOfWeek, startOfDay } from 'date-fns'
 import {
   calculateStreakUpdate,
   calculateWorkoutPoints,
-  checkMilestoneAchieved,
 } from '@/lib/gamification'
-import { MILESTONE_TYPES, NOTIFICATION_TYPES } from '@/lib/constants'
+import { logger } from '@/lib/logger'
 
 export async function POST(request: Request) {
   try {
@@ -22,252 +21,118 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user already logged a workout today
-    const today = startOfDay(new Date())
-    const { data: todayWorkouts } = await supabase
-      .from('workouts')
-      .select('id')
-      .eq('user_id', user.id)
-      .gte('completed_at', today.toISOString())
-      .limit(1)
-
-    if (todayWorkouts && todayWorkouts.length > 0) {
-      return NextResponse.json(
-        { error: 'You have already logged a workout today!' },
-        { status: 400 }
-      )
-    }
-
-    // Get current streak
+    // Get current streak data for calculation
     const { data: streakData } = await supabase
       .from('streaks')
       .select('*')
       .eq('user_id', user.id)
       .maybeSingle()
 
-    // Calculate new streak
+    // Calculate new streak using business logic
     const streakUpdate = calculateStreakUpdate(
       streakData?.last_workout_date ? new Date(streakData.last_workout_date) : null,
       streakData?.current_streak || 0
     )
 
-    // Get current week's goal
-    const weekStart = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })) // Monday at midnight
+    // Calculate longest streak
+    const longestStreak = Math.max(
+      streakUpdate.currentStreak,
+      streakData?.longest_streak || 0
+    )
+
+    // Get current week start date (UTC)
+    const now = new Date()
+    const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    const weekStart = startOfDay(startOfWeek(utcDate, { weekStartsOn: 1 }))
     const weekStartString = weekStart.toISOString().split('T')[0]
+    const today = startOfDay(new Date())
+    const todayString = today.toISOString().split('T')[0]
 
-    console.log('Workout API - Looking for goal with week_start_date:', weekStartString)
-
-    const { data: currentGoal, error: goalQueryError } = await supabase
+    // Get current goal to determine if this workout completes it (for points calculation)
+    const { data: currentGoal } = await supabase
       .from('goals')
       .select('*')
       .eq('user_id', user.id)
       .eq('week_start_date', weekStartString)
       .maybeSingle()
 
-    if (goalQueryError) {
-      console.error('Error querying goal:', goalQueryError)
-    }
+    const isWeeklyGoalComplete =
+      currentGoal &&
+      currentGoal.completed_workouts + 1 >= currentGoal.target_workouts &&
+      !currentGoal.achieved
 
-    console.log('Found goal:', currentGoal)
-
-    let isWeeklyGoalComplete = false
-    let weeklyGoalData = currentGoal
-
-    if (!currentGoal) {
-      // Create new weekly goal
-      console.log('Creating new goal for week:', weekStartString)
-      const { data: newGoal, error: insertError } = await supabase
-        .from('goals')
-        .insert({
-          user_id: user.id,
-          week_start_date: weekStartString,
-          target_workouts: 4,
-          completed_workouts: 1,
-          achieved: false,
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error('Error creating weekly goal:', insertError)
-        return NextResponse.json(
-          { error: 'Failed to create weekly goal: ' + insertError.message },
-          { status: 500 }
-        )
-      }
-
-      console.log('Created new goal:', newGoal)
-      weeklyGoalData = newGoal
-    } else {
-      // Update existing goal
-      const newCompleted = currentGoal.completed_workouts + 1
-      isWeeklyGoalComplete =
-        newCompleted >= currentGoal.target_workouts && !currentGoal.achieved
-
-      console.log(`Updating goal from ${currentGoal.completed_workouts} to ${newCompleted}`)
-
-      const { data: updatedGoal, error: updateError } = await supabase
-        .from('goals')
-        .update({
-          completed_workouts: newCompleted,
-          achieved: isWeeklyGoalComplete || currentGoal.achieved,
-        })
-        .eq('id', currentGoal.id)
-        .select()
-        .single()
-
-      if (updateError) {
-        console.error('Error updating weekly goal:', updateError)
-        return NextResponse.json(
-          { error: 'Failed to update weekly goal: ' + updateError.message },
-          { status: 500 }
-        )
-      }
-
-      console.log('Updated goal:', updatedGoal)
-      weeklyGoalData = updatedGoal
-    }
-
-    // Calculate points
+    // Calculate points based on goal completion and streak bonus
     const pointsEarned = calculateWorkoutPoints(
-      isWeeklyGoalComplete,
+      isWeeklyGoalComplete || false,
       streakUpdate.bonusPoints
     )
 
-    // Insert workout
-    const { data: workout, error: workoutError } = await supabase
-      .from('workouts')
-      .insert({
-        user_id: user.id,
-        points_earned: pointsEarned,
-      })
-      .select()
-      .single()
+    logger.debug('Workout API - Calling transaction with:', {
+      userId: user.id,
+      todayString,
+      weekStartString,
+      newStreak: streakUpdate.currentStreak,
+      longestStreak,
+      pointsEarned,
+      isWeeklyGoalComplete: isWeeklyGoalComplete || false,
+    })
 
-    if (workoutError) {
+    // Call atomic transaction function - this replaces all the sequential DB operations
+    // and prevents race conditions with row-level locking
+    const { data: result, error: transactionError } = await supabase.rpc(
+      'log_workout_transaction',
+      {
+        p_user_id: user.id,
+        p_today_date: todayString,
+        p_week_start_date: weekStartString,
+        p_new_streak: streakUpdate.currentStreak,
+        p_longest_streak: longestStreak,
+        p_points_earned: pointsEarned,
+        p_is_weekly_goal_complete: isWeeklyGoalComplete || false,
+      }
+    )
+
+    if (transactionError) {
+      logger.error('Transaction error:', transactionError)
+
+      // Handle specific error for duplicate workout
+      if (transactionError.message?.includes('already logged a workout')) {
+        return NextResponse.json(
+          { error: 'You have already logged a workout today!' },
+          { status: 400 }
+        )
+      }
+
       return NextResponse.json(
         { error: 'Failed to log workout' },
         { status: 500 }
       )
     }
 
-    // Update streak
-    const { error: streakError } = await supabase
-      .from('streaks')
-      .upsert({
-        user_id: user.id,
-        current_streak: streakUpdate.currentStreak,
-        longest_streak: Math.max(
-          streakUpdate.currentStreak,
-          streakData?.longest_streak || 0
-        ),
-        last_workout_date: today.toISOString().split('T')[0],
-      })
+    logger.debug('Transaction result:', result)
 
-    if (streakError) {
-      console.error('Error updating streak:', streakError)
-    }
-
-    // Check for milestones
-    const milestones = []
-
-    // Get total workouts count
-    const { count: totalWorkouts } = await supabase
-      .from('workouts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-
-    // Get achieved milestones
-    const { data: achievedMilestones } = await supabase
-      .from('milestones')
-      .select('milestone_value')
-      .eq('user_id', user.id)
-      .eq('milestone_type', MILESTONE_TYPES.TOTAL_SESSIONS)
-
-    const achievedValues = achievedMilestones?.map((m) => m.milestone_value) || []
-
-    // Check total sessions milestone
-    const totalSessionsMilestone = checkMilestoneAchieved(
-      MILESTONE_TYPES.TOTAL_SESSIONS,
-      totalWorkouts || 0,
-      achievedValues
-    )
-
-    if (totalSessionsMilestone) {
-      await supabase.from('milestones').insert({
-        user_id: user.id,
-        milestone_type: MILESTONE_TYPES.TOTAL_SESSIONS,
-        milestone_value: totalSessionsMilestone,
-      })
-      milestones.push({
-        type: MILESTONE_TYPES.TOTAL_SESSIONS,
-        value: totalSessionsMilestone,
-        message: `${totalSessionsMilestone} times locked in 🔥`,
-      })
-    }
-
-    // Check streak milestone
-    const { data: streakMilestones } = await supabase
-      .from('milestones')
-      .select('milestone_value')
-      .eq('user_id', user.id)
-      .eq('milestone_type', MILESTONE_TYPES.STREAK)
-
-    const achievedStreakValues =
-      streakMilestones?.map((m) => m.milestone_value) || []
-
-    const streakMilestone = checkMilestoneAchieved(
-      MILESTONE_TYPES.STREAK,
-      streakUpdate.currentStreak,
-      achievedStreakValues
-    )
-
-    if (streakMilestone) {
-      await supabase.from('milestones').insert({
-        user_id: user.id,
-        milestone_type: MILESTONE_TYPES.STREAK,
-        milestone_value: streakMilestone,
-      })
-      milestones.push({
-        type: MILESTONE_TYPES.STREAK,
-        value: streakMilestone,
-        message: `${streakMilestone}-day streak 🚀`,
-      })
-    }
-
-    // Get partner's user ID
-    const { data: allUsers } = await supabase
-      .from('users')
-      .select('id')
-      .neq('id', user.id)
-      .limit(1)
-
-    const partnerId = allUsers?.[0]?.id
-
-    // Create notification for partner
-    if (partnerId) {
-      await supabase.from('notifications').insert({
-        user_id: partnerId,
-        notification_type: NOTIFICATION_TYPES.PARTNER_COMPLETED,
-        message: 'Your partner just locked in! 🔥',
-      })
-    }
-
-    // Verify the goal was actually updated by querying it again
-    const { data: verifyGoal } = await supabase
-      .from('goals')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('week_start_date', weekStartString)
-      .maybeSingle()
-
-    console.log('VERIFICATION - Goal after update:', verifyGoal)
-    console.log('VERIFICATION - Returning completed workouts:', verifyGoal?.completed_workouts)
+    // Format milestones for response
+    const milestones = result.newMilestones.map((m: any) => {
+      if (m.type === 'total_sessions') {
+        return {
+          type: m.type,
+          value: m.value,
+          message: `${m.value} times locked in 🔥`,
+        }
+      } else if (m.type === 'streak') {
+        return {
+          type: m.type,
+          value: m.value,
+          message: `${m.value}-day streak 🚀`,
+        }
+      }
+      return m
+    })
 
     return NextResponse.json({
       success: true,
       pointsEarned,
-      workout,
+      workout: { id: result.workoutId },
       streak: streakUpdate.currentStreak,
       milestones,
       message: streakUpdate.streakBroken
@@ -275,14 +140,15 @@ export async function POST(request: Request) {
         : `Session logged! ${streakUpdate.currentStreak} day streak!`,
       debug: {
         weekStartString,
-        goalCompleted: verifyGoal?.completed_workouts,
-        goalId: verifyGoal?.id,
+        goalCompleted: result.goalCompleted,
+        goalId: result.goalId,
+        totalWorkouts: result.totalWorkouts,
       },
     })
   } catch (error: any) {
-    console.error('Error logging workout:', error)
+    logger.error('Error logging workout:', error)
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

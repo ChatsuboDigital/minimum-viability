@@ -43,8 +43,26 @@ export function useMilestones(userId: string | undefined) {
       // Calculate consecutive weeks
       let consecutiveWeeks = 0
       if (weeklyGoals && weeklyGoals.length > 0) {
-        // Simple count for now - would need more logic for true consecutive
-        consecutiveWeeks = weeklyGoals.length
+        // Data is already sorted by week_start_date descending (most recent first)
+        consecutiveWeeks = 1 // Count the most recent week
+
+        for (let i = 0; i < weeklyGoals.length - 1; i++) {
+          const currentWeek = new Date(weeklyGoals[i].week_start_date)
+          const nextWeek = new Date(weeklyGoals[i + 1].week_start_date)
+
+          // Calculate the difference in days
+          const daysDiff = Math.floor(
+            (currentWeek.getTime() - nextWeek.getTime()) / (1000 * 60 * 60 * 24)
+          )
+
+          // Weeks should be exactly 7 days apart for consecutive
+          if (daysDiff === 7) {
+            consecutiveWeeks++
+          } else {
+            // Chain is broken, stop counting
+            break
+          }
+        }
       }
 
       // Build milestone data

@@ -2,7 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
-import { startOfWeek, startOfDay } from 'date-fns'
+import { logger } from '@/lib/logger'
 
 export function useUserStats(userId: string | undefined) {
   const supabase = createClient()
@@ -12,68 +12,17 @@ export function useUserStats(userId: string | undefined) {
     queryFn: async () => {
       if (!userId) throw new Error('User ID required')
 
-      // Get total workouts
-      const { count: totalWorkouts } = await supabase
-        .from('workouts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
+      // Use optimized RPC function (1 query instead of 6+)
+      const { data, error } = await supabase.rpc('get_user_stats', {
+        p_user_id: userId,
+      })
 
-      // Get total points
-      const { data: workouts } = await supabase
-        .from('workouts')
-        .select('points_earned')
-        .eq('user_id', userId)
-
-      const totalPoints =
-        workouts?.reduce((sum, w) => sum + w.points_earned, 0) || 0
-
-      // Get current streak
-      const { data: streak } = await supabase
-        .from('streaks')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle()
-
-      // Get current week's goal
-      // IMPORTANT: Use UTC date to match server timezone
-      const now = new Date()
-      const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-      const weekStart = startOfDay(startOfWeek(utcDate, { weekStartsOn: 1 }))
-      const weekStartString = weekStart.toISOString().split('T')[0]
-
-      console.log('Client querying for week_start_date:', weekStartString)
-
-      const { data: weeklyGoal } = await supabase
-        .from('goals')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('week_start_date', weekStartString)
-        .maybeSingle()
-
-      console.log('Client found weeklyGoal:', weeklyGoal)
-
-      // Check if workout logged today
-      const today = startOfDay(new Date())
-      const { data: todayWorkout } = await supabase
-        .from('workouts')
-        .select('id')
-        .eq('user_id', userId)
-        .gte('completed_at', today.toISOString())
-        .limit(1)
-        .maybeSingle()
-
-      return {
-        totalWorkouts: totalWorkouts || 0,
-        totalPoints,
-        currentStreak: streak?.current_streak || 0,
-        longestStreak: streak?.longest_streak || 0,
-        weeklyGoal: {
-          target: weeklyGoal?.target_workouts || 4,
-          completed: weeklyGoal?.completed_workouts || 0,
-          achieved: weeklyGoal?.achieved || false,
-        },
-        workedOutToday: !!todayWorkout,
+      if (error) {
+        logger.error('Error fetching user stats:', error)
+        throw error
       }
+
+      return data
     },
     enabled: !!userId,
   })
@@ -100,57 +49,15 @@ export function useComparisonStats() {
   return useQuery({
     queryKey: ['comparison'],
     queryFn: async () => {
-      // Get all users
-      const { data: users } = await supabase.from('users').select('*')
+      // Use optimized RPC function (1 query instead of 8)
+      const { data, error } = await supabase.rpc('get_comparison_stats')
 
-      if (!users || users.length === 0) return []
+      if (error) {
+        logger.error('Error fetching comparison stats:', error)
+        throw error
+      }
 
-      // Get stats for each user
-      const stats = await Promise.all(
-        users.map(async (user) => {
-          const { count: totalWorkouts } = await supabase
-            .from('workouts')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-
-          const { data: workouts } = await supabase
-            .from('workouts')
-            .select('points_earned')
-            .eq('user_id', user.id)
-
-          const totalPoints =
-            workouts?.reduce((sum, w) => sum + w.points_earned, 0) || 0
-
-          const { data: streak } = await supabase
-            .from('streaks')
-            .select('current_streak')
-            .eq('user_id', user.id)
-            .maybeSingle()
-
-          // Use UTC date to match server timezone
-          const now = new Date()
-          const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-          const weekStart = startOfDay(startOfWeek(utcDate, { weekStartsOn: 1 }))
-          const { data: weeklyGoal } = await supabase
-            .from('goals')
-            .select('completed_workouts')
-            .eq('user_id', user.id)
-            .eq('week_start_date', weekStart.toISOString().split('T')[0])
-            .maybeSingle()
-
-          return {
-            userId: user.id,
-            username: user.username,
-            avatarColor: user.avatar_color,
-            totalWorkouts: totalWorkouts || 0,
-            totalPoints,
-            currentStreak: streak?.current_streak || 0,
-            weekCompleted: weeklyGoal?.completed_workouts || 0,
-          }
-        })
-      )
-
-      return stats
+      return data || []
     },
   })
 }

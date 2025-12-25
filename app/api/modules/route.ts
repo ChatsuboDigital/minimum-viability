@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+import { handleApiError, handleAuthError, handleSuccess, handleValidationError } from '@/lib/error-handler'
+import { createModuleSchema, updateModuleSchema, deleteModuleSchema, validateRequest } from '@/lib/schemas'
 
 export async function GET(request: Request) {
   try {
@@ -11,7 +13,7 @@ export async function GET(request: Request) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return handleAuthError()
     }
 
     const { data, error } = await supabase
@@ -21,20 +23,12 @@ export async function GET(request: Request) {
       .order('order_index', { ascending: true })
 
     if (error) {
-      console.error('Error fetching modules:', error)
-      return NextResponse.json(
-        { error: 'Failed to fetch modules' },
-        { status: 500 }
-      )
+      throw error
     }
 
-    return NextResponse.json({ modules: data || [] })
-  } catch (error: any) {
-    console.error('Error in modules GET:', error)
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    )
+    return handleSuccess({ modules: data || [] })
+  } catch (error) {
+    return handleApiError(error, 'GET /api/modules')
   }
 }
 
@@ -48,17 +42,18 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return handleAuthError()
     }
 
-    const { title, description } = await request.json()
+    // Validate request body
+    const body = await request.json()
+    const validation = validateRequest(createModuleSchema, body)
 
-    if (!title || title.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Title cannot be empty' },
-        { status: 400 }
-      )
+    if (!validation.success) {
+      return handleValidationError(validation.error)
     }
+
+    const { title, description } = validation.data
 
     // Get max order_index
     const { data: maxOrder } = await supabase
@@ -73,8 +68,8 @@ export async function POST(request: Request) {
     const { data, error } = await supabase
       .from('habit_modules')
       .insert({
-        title: title.trim(),
-        description: description?.trim() || null,
+        title,
+        description: description || null,
         order_index: nextOrder,
         active: true,
         created_by: user.id,
@@ -83,20 +78,12 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      console.error('Error creating module:', error)
-      return NextResponse.json(
-        { error: 'Failed to create module: ' + error.message },
-        { status: 500 }
-      )
+      throw error
     }
 
-    return NextResponse.json({ success: true, module: data })
-  } catch (error: any) {
-    console.error('Error in modules POST:', error)
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    )
+    return handleSuccess({ success: true, module: data })
+  } catch (error) {
+    return handleApiError(error, 'POST /api/modules')
   }
 }
 
@@ -110,50 +97,36 @@ export async function PATCH(request: Request) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return handleAuthError()
     }
 
-    const { id, title, description } = await request.json()
+    // Validate request body
+    const body = await request.json()
+    const validation = validateRequest(updateModuleSchema, body)
 
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Module ID is required' },
-        { status: 400 }
-      )
+    if (!validation.success) {
+      return handleValidationError(validation.error)
     }
 
-    if (!title || title.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Title cannot be empty' },
-        { status: 400 }
-      )
-    }
+    const { id, title, description } = validation.data
 
     const { data, error } = await supabase
       .from('habit_modules')
       .update({
-        title: title.trim(),
-        description: description?.trim() || null,
+        title,
+        description: description || null,
       })
       .eq('id', id)
       .select()
       .single()
 
     if (error) {
-      console.error('Error updating module:', error)
-      return NextResponse.json(
-        { error: 'Failed to update module: ' + error.message },
-        { status: 500 }
-      )
+      throw error
     }
 
-    return NextResponse.json({ success: true, module: data })
-  } catch (error: any) {
-    console.error('Error in modules PATCH:', error)
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    )
+    return handleSuccess({ success: true, module: data })
+  } catch (error) {
+    return handleApiError(error, 'PATCH /api/modules')
   }
 }
 
@@ -167,38 +140,30 @@ export async function DELETE(request: Request) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return handleAuthError()
     }
 
     const { searchParams } = new URL(request.url)
     const moduleId = searchParams.get('id')
 
-    if (!moduleId) {
-      return NextResponse.json(
-        { error: 'Module ID is required' },
-        { status: 400 }
-      )
+    // Validate module ID
+    const validation = validateRequest(deleteModuleSchema, { id: moduleId })
+
+    if (!validation.success) {
+      return handleValidationError(validation.error)
     }
 
     const { error } = await supabase
       .from('habit_modules')
       .delete()
-      .eq('id', moduleId)
+      .eq('id', validation.data.id)
 
     if (error) {
-      console.error('Error deleting module:', error)
-      return NextResponse.json(
-        { error: 'Failed to delete module: ' + error.message },
-        { status: 500 }
-      )
+      throw error
     }
 
-    return NextResponse.json({ success: true })
-  } catch (error: any) {
-    console.error('Error in modules DELETE:', error)
-    return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
-    )
+    return handleSuccess({ success: true })
+  } catch (error) {
+    return handleApiError(error, 'DELETE /api/modules')
   }
 }

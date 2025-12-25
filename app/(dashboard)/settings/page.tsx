@@ -216,7 +216,6 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
                 Reset all your progress. All workouts, streaks, milestones, and goals will be permanently deleted.
-                This is like a factory reset for your soul.
               </p>
               <p className="text-xs text-red-400 italic">
                 (Use this if you want to test new features or if you&apos;ve been lying to yourself about those "workouts")

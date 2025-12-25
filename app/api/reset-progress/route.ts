@@ -16,11 +16,10 @@ export async function POST(request: Request) {
     }
 
     // Delete all user data (cascading delete handles related records)
-    const { error: workoutsError, count: workoutsCount } = await supabase
+    const { error: workoutsError } = await supabase
       .from('workouts')
       .delete()
       .eq('user_id', user.id)
-      .select('*', { count: 'exact', head: true })
 
     if (workoutsError) {
       console.error('Error deleting workouts:', workoutsError)
@@ -82,7 +81,7 @@ export async function POST(request: Request) {
       )
     }
 
-    console.log('Successfully deleted data for user:', user.id, 'workouts deleted:', workoutsCount)
+    console.log('Successfully deleted all data for user:', user.id)
 
     return NextResponse.json({
       success: true,

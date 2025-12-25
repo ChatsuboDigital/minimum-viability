@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { Dumbbell } from 'lucide-react'
+import { Activity } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -32,11 +32,13 @@ export default function LoginPage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col items-center space-y-2">
-        <div className="flex items-center space-x-2">
-          <Dumbbell className="h-8 w-8" />
-          <h1 className="text-3xl font-bold">Minimum Viability</h1>
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+            <Activity className="h-6 w-6 text-black" />
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight">Minimum Viability</h1>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-zinc-400">
           Track your minimum viable workout. Stay accountable. Build streaks.
         </p>
       </div>

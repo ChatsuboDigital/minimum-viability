@@ -69,8 +69,8 @@ export default function DashboardPage() {
 
       {/* Status Message */}
       {stats?.workedOutToday && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <p className="text-sm text-green-800 font-medium">
+        <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+          <p className="text-sm text-green-400 font-medium">
             Great job! You've completed your workout for today.
             {stats.weeklyGoal.completed >= stats.weeklyGoal.target
               ? " You've hit your weekly goal!"
@@ -80,8 +80,8 @@ export default function DashboardPage() {
       )}
 
       {!stats?.workedOutToday && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800 font-medium">
+        <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+          <p className="text-sm text-blue-400 font-medium">
             No workout logged today yet. Let's keep that streak going!
           </p>
         </div>

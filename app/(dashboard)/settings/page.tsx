@@ -81,9 +81,9 @@ export default function SettingsPage() {
         </Card>
 
         {/* Info */}
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="border-blue-500/20 bg-blue-500/10">
           <CardContent className="pt-6">
-            <p className="text-sm text-blue-800">
+            <p className="text-sm text-blue-400">
               <strong>Note:</strong> Some settings changes may affect both you
               and your partner. Coordinate with your workout partner before
               making significant changes.

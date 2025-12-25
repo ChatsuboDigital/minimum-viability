@@ -1,6 +1,6 @@
 'use client'
 
-import { Dumbbell, LogOut, Trophy, Settings } from 'lucide-react'
+import { Activity, LogOut, Trophy, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/useAuth'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
@@ -14,12 +14,14 @@ export function Navbar() {
   useRealtimeWorkouts(user?.id)
 
   return (
-    <nav className="border-b bg-white">
+    <nav className="border-b border-zinc-800 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/dashboard" className="flex items-center space-x-2">
-            <Dumbbell className="h-6 w-6" />
-            <span className="font-bold text-lg">Minimum Viability</span>
+            <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center">
+              <Activity className="h-5 w-5 text-black" />
+            </div>
+            <span className="font-semibold text-lg tracking-tight">Minimum Viability</span>
           </Link>
 
           <div className="flex items-center space-x-1">

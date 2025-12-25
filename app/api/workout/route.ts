@@ -53,19 +53,19 @@ export async function POST(request: Request) {
 
     // Get current week's goal
     const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }) // Monday
-    const { data: currentGoal, error: goalError } = await supabase
+    const { data: currentGoal } = await supabase
       .from('goals')
       .select('*')
       .eq('user_id', user.id)
       .eq('week_start_date', weekStart.toISOString().split('T')[0])
-      .single()
+      .maybeSingle()
 
     let isWeeklyGoalComplete = false
     let weeklyGoalData = currentGoal
 
     if (!currentGoal) {
       // Create new weekly goal
-      const { data: newGoal } = await supabase
+      const { data: newGoal, error: insertError } = await supabase
         .from('goals')
         .insert({
           user_id: user.id,
@@ -77,6 +77,10 @@ export async function POST(request: Request) {
         .select()
         .single()
 
+      if (insertError) {
+        console.error('Error creating weekly goal:', insertError)
+      }
+
       weeklyGoalData = newGoal
     } else {
       // Update existing goal
@@ -84,7 +88,7 @@ export async function POST(request: Request) {
       isWeeklyGoalComplete =
         newCompleted >= currentGoal.target_workouts && !currentGoal.achieved
 
-      const { data: updatedGoal } = await supabase
+      const { data: updatedGoal, error: updateError } = await supabase
         .from('goals')
         .update({
           completed_workouts: newCompleted,
@@ -93,6 +97,10 @@ export async function POST(request: Request) {
         .eq('id', currentGoal.id)
         .select()
         .single()
+
+      if (updateError) {
+        console.error('Error updating weekly goal:', updateError)
+      }
 
       weeklyGoalData = updatedGoal
     }

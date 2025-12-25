@@ -41,7 +41,7 @@ export function useUserStats(userId: string | undefined) {
         .select('*')
         .eq('user_id', userId)
         .eq('week_start_date', weekStart.toISOString().split('T')[0])
-        .single()
+        .maybeSingle()
 
       // Check if workout logged today
       const today = startOfDay(new Date())
@@ -51,7 +51,7 @@ export function useUserStats(userId: string | undefined) {
         .eq('user_id', userId)
         .gte('completed_at', today.toISOString())
         .limit(1)
-        .single()
+        .maybeSingle()
 
       return {
         totalWorkouts: totalWorkouts || 0,

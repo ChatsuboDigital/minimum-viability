@@ -8,7 +8,7 @@ import { StatsCard } from '@/components/stats/StatsCard'
 import { MinimumViabilityBox } from '@/components/focus/MinimumViabilityBox'
 import { useUserStats } from '@/hooks/useStats'
 import { useAuth } from '@/hooks/useAuth'
-import { Activity, Award, Sparkles } from 'lucide-react'
+import { Activity, Award } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -93,28 +93,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* First-time user welcome message */}
-      {stats?.totalWorkouts === 0 && (
-        <div className="max-w-2xl mx-auto mt-8 px-4">
-          <Card className="border-zinc-800 bg-gradient-to-br from-zinc-900/80 to-zinc-900/50 backdrop-blur">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0">
-                  <Sparkles className="h-6 w-6 text-zinc-400" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-white">Welcome to your fitness journey!</h3>
-                  <p className="text-sm text-zinc-400 leading-relaxed">
-                    Track your daily workouts, build streaks, and compete with your partner.
-                    Click the button above to log your first session and start your streak.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
 
       {/* Detailed Stats - Secondary */}
       <div className="mt-12 sm:mt-16 space-y-6 pb-8">

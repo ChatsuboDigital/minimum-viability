@@ -11,7 +11,8 @@ DECLARE
   result JSON;
 BEGIN
   -- Calculate current week start (Monday) using UTC
-  current_week_start := DATE_TRUNC('week', (NOW() AT TIME ZONE 'UTC')::date + INTERVAL '1 day') - INTERVAL '1 day';
+  -- DATE_TRUNC('week') returns Monday by default (ISO 8601)
+  current_week_start := DATE_TRUNC('week', NOW() AT TIME ZONE 'UTC')::date;
 
   -- Calculate today's start
   today_start := DATE_TRUNC('day', NOW() AT TIME ZONE 'UTC');

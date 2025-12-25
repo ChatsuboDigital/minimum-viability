@@ -41,14 +41,14 @@ export async function POST(request: Request) {
     )
 
     // Get current week start date (UTC) - CRITICAL: Must match SQL calculation exactly
+    // PostgreSQL: DATE_TRUNC('week', NOW() AT TIME ZONE 'UTC')::date
+    // DATE_TRUNC('week') returns Monday by default (ISO 8601)
     const now = new Date()
-    // Get current UTC date at midnight
     const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
 
-    // Calculate week start (Monday) in pure UTC to match PostgreSQL calculation
-    // PostgreSQL: DATE_TRUNC('week', (NOW() AT TIME ZONE 'UTC')::date + INTERVAL '1 day') - INTERVAL '1 day'
-    const dayOfWeek = utcDate.getUTCDay() // 0 = Sunday, 1 = Monday, etc.
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Days to subtract to get to Monday
+    // Calculate Monday of current week (ISO 8601: Monday = day 1)
+    const dayOfWeek = utcDate.getUTCDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const daysToMonday = (dayOfWeek + 6) % 7 // Convert to: Monday=0, Tuesday=1, ..., Sunday=6
     const weekStartDate = new Date(Date.UTC(
       utcDate.getUTCFullYear(),
       utcDate.getUTCMonth(),

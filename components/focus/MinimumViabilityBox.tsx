@@ -19,16 +19,39 @@ import { useModules } from '@/hooks/useModules'
 import { Target, Plus, X } from 'lucide-react'
 
 export function MinimumViabilityBox() {
-  const { modules, isLoading, addModule, deleteModule, isAdding } = useModules()
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const { modules, isLoading, addModule, updateModule, deleteModule, isAdding, isUpdating } = useModules()
+  const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [newModule, setNewModule] = useState({ title: '', description: '' })
+  const [editingModule, setEditingModule] = useState<{ id: string; title: string; description: string } | null>(null)
 
   const handleAdd = () => {
     if (newModule.title.trim()) {
       addModule(newModule)
-      setDialogOpen(false)
+      setAddDialogOpen(false)
       setNewModule({ title: '', description: '' })
     }
+  }
+
+  const handleEdit = () => {
+    if (editingModule && editingModule.title.trim()) {
+      updateModule({
+        id: editingModule.id,
+        title: editingModule.title,
+        description: editingModule.description,
+      })
+      setEditDialogOpen(false)
+      setEditingModule(null)
+    }
+  }
+
+  const openEditDialog = (module: any) => {
+    setEditingModule({
+      id: module.id,
+      title: module.title,
+      description: module.description || '',
+    })
+    setEditDialogOpen(true)
   }
 
   if (isLoading) {
@@ -43,7 +66,7 @@ export function MinimumViabilityBox() {
             <Target className="h-5 w-5 text-zinc-400" />
             <CardTitle className="text-lg">Minimum Viability</CardTitle>
           </div>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
             <DialogTrigger asChild>
               <Button
                 variant="ghost"
@@ -95,7 +118,7 @@ export function MinimumViabilityBox() {
                 <Button
                   variant="ghost"
                   onClick={() => {
-                    setDialogOpen(false)
+                    setAddDialogOpen(false)
                     setNewModule({ title: '', description: '' })
                   }}
                   className="text-zinc-400 hover:text-white"
@@ -108,6 +131,67 @@ export function MinimumViabilityBox() {
                   className="bg-white text-black hover:bg-zinc-100"
                 >
                   {isAdding ? 'Adding...' : 'Add Module'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Dialog */}
+          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+            <DialogContent className="bg-zinc-900 border-zinc-800">
+              <DialogHeader>
+                <DialogTitle className="text-white">Edit Habit Module</DialogTitle>
+                <DialogDescription className="text-zinc-400">
+                  Update your habit and add details like specific exercises or tasks.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-title" className="text-white">
+                    Habit <span className="text-red-400">*</span>
+                  </Label>
+                  <Input
+                    id="edit-title"
+                    value={editingModule?.title || ''}
+                    onChange={(e) => setEditingModule(editingModule ? { ...editingModule, title: e.target.value } : null)}
+                    placeholder="e.g., Workout"
+                    className="bg-zinc-800 border-zinc-700 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-description" className="text-white">
+                    Details
+                  </Label>
+                  <Textarea
+                    id="edit-description"
+                    value={editingModule?.description || ''}
+                    onChange={(e) => setEditingModule(editingModule ? { ...editingModule, description: e.target.value } : null)}
+                    placeholder="e.g., 10 push-ups, 10 sit-ups, 10 squats"
+                    className="bg-zinc-800 border-zinc-700 text-white resize-none"
+                    rows={4}
+                  />
+                  <p className="text-xs text-zinc-500">
+                    Add specific details about what this habit includes
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setEditDialogOpen(false)
+                    setEditingModule(null)
+                  }}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleEdit}
+                  disabled={!editingModule?.title.trim() || isUpdating}
+                  className="bg-white text-black hover:bg-zinc-100"
+                >
+                  {isUpdating ? 'Saving...' : 'Save Changes'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -127,7 +211,8 @@ export function MinimumViabilityBox() {
           modules.map((module, index) => (
             <div
               key={module.id}
-              className="group flex items-start justify-between p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
+              className="group flex items-start justify-between p-3 rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors cursor-pointer"
+              onClick={() => openEditDialog(module)}
             >
               <div className="flex items-start space-x-3 flex-1">
                 <div className="mt-0.5 text-zinc-500 text-sm font-mono">
@@ -136,14 +221,17 @@ export function MinimumViabilityBox() {
                 <div className="flex-1">
                   <p className="text-white font-medium">{module.title}</p>
                   {module.description && (
-                    <p className="text-xs text-zinc-500 mt-1">{module.description}</p>
+                    <p className="text-xs text-zinc-500 mt-1 whitespace-pre-wrap">{module.description}</p>
                   )}
                 </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => deleteModule(module.id)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  deleteModule(module.id)
+                }}
                 className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-500 hover:text-red-400 h-8 w-8 p-0"
               >
                 <X className="h-4 w-4" />

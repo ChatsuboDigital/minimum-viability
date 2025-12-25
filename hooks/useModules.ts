@@ -53,6 +53,32 @@ export function useModules() {
     },
   })
 
+  const updateModule = useMutation({
+    mutationFn: async ({ id, title, description }: { id: string; title: string; description?: string }) => {
+      const response = await fetch('/api/modules', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, title, description }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to update module')
+      }
+
+      return response.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['modules'] })
+      toast.success('Module updated! Both partners will see this.')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update module')
+    },
+  })
+
   const deleteModule = useMutation({
     mutationFn: async (moduleId: string) => {
       const response = await fetch(`/api/modules?id=${moduleId}`, {
@@ -79,8 +105,10 @@ export function useModules() {
     modules: data || [],
     isLoading,
     addModule: addModule.mutate,
+    updateModule: updateModule.mutate,
     deleteModule: deleteModule.mutate,
     isAdding: addModule.isPending,
+    isUpdating: updateModule.isPending,
     isDeleting: deleteModule.isPending,
   }
 }

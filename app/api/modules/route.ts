@@ -100,6 +100,63 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PATCH(request: Request) {
+  try {
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id, title, description } = await request.json()
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Module ID is required' },
+        { status: 400 }
+      )
+    }
+
+    if (!title || title.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Title cannot be empty' },
+        { status: 400 }
+      )
+    }
+
+    const { data, error } = await supabase
+      .from('habit_modules')
+      .update({
+        title: title.trim(),
+        description: description?.trim() || null,
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating module:', error)
+      return NextResponse.json(
+        { error: 'Failed to update module: ' + error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true, module: data })
+  } catch (error: any) {
+    console.error('Error in modules PATCH:', error)
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function DELETE(request: Request) {
   try {
     const supabase = await createClient()

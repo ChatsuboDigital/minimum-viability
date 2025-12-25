@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     )
 
     // Get current week's goal
-    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }) // Monday
+    const weekStart = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 })) // Monday at midnight
     const { data: currentGoal } = await supabase
       .from('goals')
       .select('*')

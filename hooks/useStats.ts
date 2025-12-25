@@ -35,7 +35,7 @@ export function useUserStats(userId: string | undefined) {
         .maybeSingle()
 
       // Get current week's goal
-      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+      const weekStart = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 }))
       const { data: weeklyGoal } = await supabase
         .from('goals')
         .select('*')
@@ -118,7 +118,7 @@ export function useComparisonStats() {
             .eq('user_id', user.id)
             .maybeSingle()
 
-          const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 })
+          const weekStart = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 }))
           const { data: weeklyGoal } = await supabase
             .from('goals')
             .select('completed_workouts')

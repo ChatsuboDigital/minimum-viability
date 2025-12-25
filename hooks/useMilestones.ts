@@ -52,8 +52,8 @@ export function useMilestones(userId: string | undefined) {
         achieved?.map((m) => `${m.milestone_type}-${m.milestone_value}`) || []
       )
 
-      const workoutProgress = getMilestoneProgress(
-        MILESTONE_TYPES.TOTAL_WORKOUTS,
+      const sessionProgress = getMilestoneProgress(
+        MILESTONE_TYPES.TOTAL_SESSIONS,
         totalWorkouts || 0
       )
 
@@ -68,13 +68,13 @@ export function useMilestones(userId: string | undefined) {
       )
 
       const allMilestones = [
-        // Total Workouts
-        ...MILESTONES.TOTAL_WORKOUTS.map((value) => ({
-          type: MILESTONE_TYPES.TOTAL_WORKOUTS,
+        // Total Sessions
+        ...MILESTONES.TOTAL_SESSIONS.map((value) => ({
+          type: MILESTONE_TYPES.TOTAL_SESSIONS,
           value,
-          achieved: achievedSet.has(`${MILESTONE_TYPES.TOTAL_WORKOUTS}-${value}`),
-          label: `${value} Total Workouts`,
-          description: `Complete ${value} workouts in total`,
+          achieved: achievedSet.has(`${MILESTONE_TYPES.TOTAL_SESSIONS}-${value}`),
+          label: `${value} Times Locked In`,
+          description: `Show up ${value} times total 🔥`,
         })),
         // Streaks
         ...MILESTONES.STREAKS.map((value) => ({
@@ -82,7 +82,7 @@ export function useMilestones(userId: string | undefined) {
           value,
           achieved: achievedSet.has(`${MILESTONE_TYPES.STREAK}-${value}`),
           label: `${value}-Day Streak`,
-          description: `Maintain a ${value}-day workout streak`,
+          description: `Stay consistent for ${value} days straight 🚀`,
         })),
         // Weekly Goals
         ...MILESTONES.WEEKLY_GOALS.map((value) => ({
@@ -90,14 +90,14 @@ export function useMilestones(userId: string | undefined) {
           value,
           achieved: achievedSet.has(`${MILESTONE_TYPES.WEEKLY_GOAL}-${value}`),
           label: `${value} Week Goal Streak`,
-          description: `Hit your weekly goal ${value} weeks in a row`,
+          description: `Hit your weekly goal ${value} weeks in a row ⚡`,
         })),
       ]
 
       return {
         milestones: allMilestones,
         progress: {
-          totalWorkouts: workoutProgress,
+          totalSessions: sessionProgress,
           streak: streakProgress,
           weeklyGoal: weeklyGoalProgress,
         },

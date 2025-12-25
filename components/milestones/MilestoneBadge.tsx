@@ -19,7 +19,7 @@ export function MilestoneBadge({
 }: MilestoneBadgeProps) {
   const getIcon = () => {
     switch (type) {
-      case MILESTONE_TYPES.TOTAL_WORKOUTS:
+      case MILESTONE_TYPES.TOTAL_SESSIONS:
         return Trophy
       case MILESTONE_TYPES.STREAK:
         return Flame

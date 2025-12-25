@@ -55,19 +55,19 @@ export default function MilestonesPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center">
               <Trophy className="h-4 w-4 mr-2" />
-              Total Workouts
+              Times Locked In
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {data.progress.totalWorkouts.next ? (
+            {data.progress.totalSessions.next ? (
               <>
                 <p className="text-2xl font-bold">
-                  {data.progress.totalWorkouts.current}
+                  {data.progress.totalSessions.current}
                 </p>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Next: {data.progress.totalWorkouts.next} workouts
+                  Next: {data.progress.totalSessions.next} sessions
                 </p>
-                <Progress value={data.progress.totalWorkouts.progress} />
+                <Progress value={data.progress.totalSessions.progress} />
               </>
             ) : (
               <p className="text-sm text-green-600">All milestones achieved!</p>

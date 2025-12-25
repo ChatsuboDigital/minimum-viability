@@ -40,14 +40,22 @@ export async function POST(request: Request) {
       streakData?.longest_streak || 0
     )
 
-    // Get current week start date (UTC) - CRITICAL: Use UTC for both to match RPC functions
+    // Get current week start date (UTC) - CRITICAL: Must match SQL calculation exactly
     const now = new Date()
+    // Get current UTC date at midnight
     const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-    const weekStart = startOfDay(startOfWeek(utcDate, { weekStartsOn: 1 }))
-    const weekStartString = weekStart.toISOString().split('T')[0]
-    // Use UTC for today as well to match week start calculation
-    const today = startOfDay(utcDate)
-    const todayString = today.toISOString().split('T')[0]
+
+    // Calculate week start (Monday) in pure UTC to match PostgreSQL calculation
+    // PostgreSQL: DATE_TRUNC('week', (NOW() AT TIME ZONE 'UTC')::date + INTERVAL '1 day') - INTERVAL '1 day'
+    const dayOfWeek = utcDate.getUTCDay() // 0 = Sunday, 1 = Monday, etc.
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1 // Days to subtract to get to Monday
+    const weekStartDate = new Date(Date.UTC(
+      utcDate.getUTCFullYear(),
+      utcDate.getUTCMonth(),
+      utcDate.getUTCDate() - daysToMonday
+    ))
+    const weekStartString = weekStartDate.toISOString().split('T')[0]
+    const todayString = utcDate.toISOString().split('T')[0]
 
     // Get current goal to determine if this workout completes it (for points calculation)
     const { data: currentGoal } = await supabase

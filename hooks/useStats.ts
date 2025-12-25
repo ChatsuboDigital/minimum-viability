@@ -35,13 +35,22 @@ export function useUserStats(userId: string | undefined) {
         .maybeSingle()
 
       // Get current week's goal
-      const weekStart = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 }))
+      // IMPORTANT: Use UTC date to match server timezone
+      const now = new Date()
+      const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+      const weekStart = startOfDay(startOfWeek(utcDate, { weekStartsOn: 1 }))
+      const weekStartString = weekStart.toISOString().split('T')[0]
+
+      console.log('Client querying for week_start_date:', weekStartString)
+
       const { data: weeklyGoal } = await supabase
         .from('goals')
         .select('*')
         .eq('user_id', userId)
-        .eq('week_start_date', weekStart.toISOString().split('T')[0])
+        .eq('week_start_date', weekStartString)
         .maybeSingle()
+
+      console.log('Client found weeklyGoal:', weeklyGoal)
 
       // Check if workout logged today
       const today = startOfDay(new Date())
@@ -118,7 +127,10 @@ export function useComparisonStats() {
             .eq('user_id', user.id)
             .maybeSingle()
 
-          const weekStart = startOfDay(startOfWeek(new Date(), { weekStartsOn: 1 }))
+          // Use UTC date to match server timezone
+          const now = new Date()
+          const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+          const weekStart = startOfDay(startOfWeek(utcDate, { weekStartsOn: 1 }))
           const { data: weeklyGoal } = await supabase
             .from('goals')
             .select('completed_workouts')

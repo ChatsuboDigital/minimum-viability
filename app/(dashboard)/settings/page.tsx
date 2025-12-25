@@ -101,12 +101,12 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle>Weekly Goal</CardTitle>
             <CardDescription>
-              Set the number of workouts you want to complete each week
+              Set the number of sessions you want to complete each week
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="weekly-target">Workouts per week</Label>
+              <Label htmlFor="weekly-target">Sessions per week</Label>
               <Input
                 id="weekly-target"
                 type="number"
@@ -116,7 +116,7 @@ export default function SettingsPage() {
                 onChange={(e) => setWeeklyTarget(parseInt(e.target.value))}
               />
               <p className="text-xs text-muted-foreground">
-                Recommended: 3-5 workouts per week
+                Recommended: 3-5 sessions per week
               </p>
             </div>
             <Button onClick={handleSave} disabled={isUpdating || preferencesLoading}>

@@ -58,6 +58,15 @@ export async function POST(request: Request) {
       streakData?.longest_streak || 0
     )
 
+    // Get user's weekly target from preferences
+    const { data: userPrefs } = await supabase
+      .from('user_preferences')
+      .select('weekly_target')
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    const weeklyTarget = userPrefs?.weekly_target || 4 // Default to 4 if not set
+
     // Get current goal to determine if this workout completes it (for points calculation)
     const { data: currentGoal } = await supabase
       .from('goals')
@@ -68,7 +77,7 @@ export async function POST(request: Request) {
 
     const isWeeklyGoalComplete =
       currentGoal &&
-      currentGoal.completed_workouts + 1 >= currentGoal.target_workouts &&
+      currentGoal.completed_workouts + 1 >= weeklyTarget &&
       !currentGoal.achieved
 
     // Calculate points based on goal completion and streak bonus
@@ -99,6 +108,7 @@ export async function POST(request: Request) {
         p_longest_streak: longestStreak,
         p_points_earned: pointsEarned,
         p_is_weekly_goal_complete: isWeeklyGoalComplete || false,
+        p_target_workouts: weeklyTarget,
       }
     )
 

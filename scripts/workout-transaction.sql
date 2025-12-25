@@ -10,7 +10,8 @@ CREATE OR REPLACE FUNCTION log_workout_transaction(
   p_new_streak INT,
   p_longest_streak INT,
   p_points_earned INT,
-  p_is_weekly_goal_complete BOOLEAN
+  p_is_weekly_goal_complete BOOLEAN,
+  p_target_workouts INT DEFAULT 4
 )
 RETURNS JSON AS $$
 DECLARE
@@ -53,9 +54,9 @@ BEGIN
     last_workout_date = EXCLUDED.last_workout_date,
     updated_at = EXCLUDED.updated_at;
 
-  -- 4. Create or update weekly goal
+  -- 4. Create or update weekly goal (uses user's target from preferences)
   INSERT INTO goals (user_id, week_start_date, target_workouts, completed_workouts, achieved)
-  VALUES (p_user_id, p_week_start_date, 4, 1, p_is_weekly_goal_complete)
+  VALUES (p_user_id, p_week_start_date, p_target_workouts, 1, p_is_weekly_goal_complete)
   ON CONFLICT (user_id, week_start_date)
   DO UPDATE SET
     completed_workouts = goals.completed_workouts + 1,
@@ -140,7 +141,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Grant execute permission to authenticated users
-GRANT EXECUTE ON FUNCTION log_workout_transaction(UUID, DATE, DATE, INT, INT, INT, BOOLEAN) TO authenticated;
+GRANT EXECUTE ON FUNCTION log_workout_transaction(UUID, DATE, DATE, INT, INT, INT, BOOLEAN, INT) TO authenticated;
 
 -- Add comment for documentation
 COMMENT ON FUNCTION log_workout_transaction IS 'Atomically logs a workout with all related updates (streak, goal, milestones, notifications). Prevents race conditions with row-level locking.';

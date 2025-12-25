@@ -39,7 +39,7 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold tracking-tight">Minimum Viability</h1>
         </div>
         <p className="text-sm text-zinc-400">
-          Track your minimum viable workout. Stay accountable. Build streaks.
+          Do the minimum. Achieve the maximum. Stay consistent.
         </p>
       </div>
 

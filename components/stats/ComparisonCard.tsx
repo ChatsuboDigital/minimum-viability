@@ -35,9 +35,9 @@ export function ComparisonCard() {
   const userAhead = currentUserStats.totalWorkouts >= partnerStats.totalWorkouts
 
   return (
-    <Card>
+    <Card className="border-zinc-800 bg-zinc-900/50">
       <CardHeader>
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="text-sm font-medium text-zinc-400">
           You vs Partner
         </CardTitle>
       </CardHeader>

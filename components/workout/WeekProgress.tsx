@@ -15,21 +15,21 @@ export function WeekProgress({
   const progress = (completed / target) * 100
 
   return (
-    <Card>
+    <Card className="border-zinc-800 bg-zinc-900/50">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
-          This Week's Progress
+        <CardTitle className="text-sm font-medium text-zinc-400">
+          Weekly Progress
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent className="space-y-3">
         <div className="flex items-baseline justify-between">
-          <span className="text-2xl font-bold">{completed}</span>
-          <span className="text-sm text-muted-foreground">/ {target} workouts</span>
+          <span className="text-3xl font-bold">{completed}</span>
+          <span className="text-sm text-zinc-500">/ {target}</span>
         </div>
-        <Progress value={progress} className="h-2" />
+        <Progress value={progress} className="h-2 bg-zinc-800" />
         {achieved && (
-          <p className="text-xs text-green-600 font-medium">
-            Goal achieved this week!
+          <p className="text-xs text-green-400 font-medium">
+            ✓ Week completed
           </p>
         )}
       </CardContent>

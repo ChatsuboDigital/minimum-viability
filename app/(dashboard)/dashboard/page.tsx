@@ -5,6 +5,7 @@ import { WeekProgress } from '@/components/workout/WeekProgress'
 import { StreakDisplay } from '@/components/workout/StreakDisplay'
 import { ComparisonCard } from '@/components/stats/ComparisonCard'
 import { StatsCard } from '@/components/stats/StatsCard'
+import { FocusBanner } from '@/components/focus/FocusBanner'
 import { useUserStats } from '@/hooks/useStats'
 import { useAuth } from '@/hooks/useAuth'
 import { Activity, Award } from 'lucide-react'
@@ -23,6 +24,11 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Focus Banner */}
+      <div className="pt-6 pb-4">
+        <FocusBanner />
+      </div>
+
       {/* Hero Section - The Button */}
       <div className="flex flex-col items-center justify-center min-h-[50vh] py-8 space-y-6 sm:space-y-8">
         <div className="text-center space-y-2 sm:space-y-3">

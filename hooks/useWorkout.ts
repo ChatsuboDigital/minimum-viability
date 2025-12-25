@@ -32,47 +32,104 @@ export function useWorkout() {
       return response.json()
     },
     onMutate: async () => {
-      // Optimistically update UI immediately
+      // Cancel in-flight queries
       await queryClient.cancelQueries({ queryKey: ['stats'] })
+      await queryClient.cancelQueries({ queryKey: ['comparison'] })
 
-      // Show immediate feedback
-      toast.loading('Logging session...', { id: 'workout-loading' })
+      // Get current user for optimistic update
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
-      return { startTime: Date.now() }
-    },
-    onSuccess: async (data, variables, context) => {
-      // Dismiss loading toast
-      toast.dismiss('workout-loading')
+      // Snapshot previous value for rollback
+      const previousStats = queryClient.getQueryData(['stats', user?.id])
 
-      // Aggressively invalidate ALL queries and force refetch
-      await queryClient.invalidateQueries({ queryKey: ['workouts'], refetchType: 'all' })
-      await queryClient.invalidateQueries({ queryKey: ['stats'], refetchType: 'all' })
-      await queryClient.invalidateQueries({ queryKey: ['streak'], refetchType: 'all' })
-      await queryClient.invalidateQueries({ queryKey: ['weeklyGoal'], refetchType: 'all' })
-      await queryClient.invalidateQueries({ queryKey: ['comparison'], refetchType: 'all' })
-      await queryClient.invalidateQueries({ queryKey: ['modules'], refetchType: 'all' })
+      // Optimistically update stats immediately
+      queryClient.setQueryData(['stats', user?.id], (old: any) => {
+        if (!old) return old
 
-      // Force immediate refetch
-      await queryClient.refetchQueries({ queryKey: ['stats'], type: 'active' })
-
-      // Show success message
-      toast.success(`Locked in! +${data.pointsEarned} points`, {
-        description: data.message,
+        return {
+          ...old,
+          totalWorkouts: (old.totalWorkouts || 0) + 1,
+          totalPoints: (old.totalPoints || 0) + 10, // Base points
+          weeklyGoal: {
+            ...old.weeklyGoal,
+            completed: (old.weeklyGoal?.completed || 0) + 1,
+            achieved:
+              (old.weeklyGoal?.completed || 0) + 1 >= (old.weeklyGoal?.target || 4),
+          },
+          // Don't optimistically update streak - server will calculate correctly
+          workedOutToday: true,
+        }
       })
+
+      // Show success immediately (optimistic)
+      toast.success('Locked in! +10 points', {
+        description: 'Session logged!',
+        id: 'workout-success',
+      })
+
+      return { previousStats, userId: user?.id }
+    },
+    onSuccess: (data, variables, context) => {
+      // Log debug data from server
+      console.log('Server response debug:', data.debug)
+
+      // Update with real data from server
+      if (context?.userId) {
+        queryClient.setQueryData(['stats', context.userId], (old: any) => {
+          if (!old) return old
+
+          return {
+            ...old,
+            totalPoints: (old.totalPoints || 0) - 10 + data.pointsEarned, // Adjust for actual points
+            currentStreak: data.streak,
+            weeklyGoal: {
+              ...old.weeklyGoal,
+              // Use server data if available from debug
+              completed: data.debug?.goalCompleted ?? old.weeklyGoal?.completed,
+            },
+          }
+        })
+
+        // Update success toast with real points if different
+        if (data.pointsEarned !== 10) {
+          toast.success(`Locked in! +${data.pointsEarned} points`, {
+            description: data.message,
+            id: 'workout-success',
+          })
+        }
+      }
+
+      // Invalidate all queries in background (no await - don't block UI)
+      queryClient.invalidateQueries({ queryKey: ['workouts'] })
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['streak'] })
+      queryClient.invalidateQueries({ queryKey: ['weeklyGoal'] })
+      queryClient.invalidateQueries({ queryKey: ['comparison'] })
+      queryClient.invalidateQueries({ queryKey: ['modules'] })
+      queryClient.invalidateQueries({ queryKey: ['milestones'] })
 
       // Show milestone achievements
       if (data.milestones && data.milestones.length > 0) {
         data.milestones.forEach((milestone: any) => {
-          toast.success(`🎉 Milestone achieved: ${milestone.message}!`)
+          toast.success(`🎉 Milestone: ${milestone.message}!`)
         })
       }
     },
-    onError: (error: Error) => {
-      toast.dismiss('workout-loading')
-      toast.error(error.message || 'Failed to log session')
+    onError: (error: Error, variables, context) => {
+      // Rollback optimistic update
+      if (context?.previousStats && context?.userId) {
+        queryClient.setQueryData(['stats', context.userId], context.previousStats)
+      }
+
+      toast.error(error.message || 'Failed to log session', {
+        id: 'workout-success',
+      })
 
       // Refetch to restore correct state
       queryClient.invalidateQueries({ queryKey: ['stats'] })
+      queryClient.invalidateQueries({ queryKey: ['comparison'] })
     },
   })
 

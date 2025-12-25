@@ -253,6 +253,17 @@ export async function POST(request: Request) {
       })
     }
 
+    // Verify the goal was actually updated by querying it again
+    const { data: verifyGoal } = await supabase
+      .from('goals')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('week_start_date', weekStartString)
+      .maybeSingle()
+
+    console.log('VERIFICATION - Goal after update:', verifyGoal)
+    console.log('VERIFICATION - Returning completed workouts:', verifyGoal?.completed_workouts)
+
     return NextResponse.json({
       success: true,
       pointsEarned,
@@ -262,6 +273,11 @@ export async function POST(request: Request) {
       message: streakUpdate.streakBroken
         ? 'Session logged! Starting fresh streak.'
         : `Session logged! ${streakUpdate.currentStreak} day streak!`,
+      debug: {
+        weekStartString,
+        goalCompleted: verifyGoal?.completed_workouts,
+        goalId: verifyGoal?.id,
+      },
     })
   } catch (error: any) {
     console.error('Error logging workout:', error)

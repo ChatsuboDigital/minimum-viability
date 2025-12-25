@@ -112,18 +112,8 @@ export async function POST(request: Request) {
         )
       }
 
-      // TEMPORARY: Return full error for debugging
       return NextResponse.json(
-        {
-          error: 'Failed to log workout',
-          debug: {
-            message: transactionError.message,
-            details: transactionError.details,
-            hint: transactionError.hint,
-            code: transactionError.code,
-            full: JSON.stringify(transactionError)
-          }
-        },
+        { error: 'Failed to log workout' },
         { status: 500 }
       )
     }

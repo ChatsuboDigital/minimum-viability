@@ -130,7 +130,7 @@ BEGIN
       ), '[]'::json)
       FROM milestones
       WHERE user_id = p_user_id
-        AND created_at >= NOW() - INTERVAL '1 second' -- Get milestones created in this transaction
+        AND achieved_at >= NOW() - INTERVAL '1 second' -- Get milestones created in this transaction
     )
   ) INTO v_result;
 

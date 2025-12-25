@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       .from('streaks')
       .select('*')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
     // Calculate new streak
     const streakUpdate = calculateStreakUpdate(
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
     }
 
     // Update streak
-    await supabase
+    const { error: streakError } = await supabase
       .from('streaks')
       .upsert({
         user_id: user.id,
@@ -140,6 +140,10 @@ export async function POST(request: Request) {
         ),
         last_workout_date: today.toISOString().split('T')[0],
       })
+
+    if (streakError) {
+      console.error('Error updating streak:', streakError)
+    }
 
     // Check for milestones
     const milestones = []

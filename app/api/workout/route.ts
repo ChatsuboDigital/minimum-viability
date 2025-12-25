@@ -79,6 +79,10 @@ export async function POST(request: Request) {
 
       if (insertError) {
         console.error('Error creating weekly goal:', insertError)
+        return NextResponse.json(
+          { error: 'Failed to create weekly goal: ' + insertError.message },
+          { status: 500 }
+        )
       }
 
       weeklyGoalData = newGoal
@@ -100,6 +104,10 @@ export async function POST(request: Request) {
 
       if (updateError) {
         console.error('Error updating weekly goal:', updateError)
+        return NextResponse.json(
+          { error: 'Failed to update weekly goal: ' + updateError.message },
+          { status: 500 }
+        )
       }
 
       weeklyGoalData = updatedGoal

@@ -40,22 +40,22 @@ export async function POST(request: Request) {
       streakData?.longest_streak || 0
     )
 
-    // Get current week start date (UTC) - CRITICAL: Must match SQL calculation exactly
-    // PostgreSQL: DATE_TRUNC('week', NOW() AT TIME ZONE 'UTC')::date
-    // DATE_TRUNC('week') returns Monday by default (ISO 8601)
-    const now = new Date()
-    const utcDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    // Get current dates in Sydney timezone - CRITICAL: Must match SQL calculation exactly
+    // Use database helper to ensure timezone consistency
+    const { data: sydneyDates, error: datesError } = await supabase.rpc(
+      'get_sydney_dates'
+    )
 
-    // Calculate Monday of current week (ISO 8601: Monday = day 1)
-    const dayOfWeek = utcDate.getUTCDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    const daysToMonday = (dayOfWeek + 6) % 7 // Convert to: Monday=0, Tuesday=1, ..., Sunday=6
-    const weekStartDate = new Date(Date.UTC(
-      utcDate.getUTCFullYear(),
-      utcDate.getUTCMonth(),
-      utcDate.getUTCDate() - daysToMonday
-    ))
-    const weekStartString = weekStartDate.toISOString().split('T')[0]
-    const todayString = utcDate.toISOString().split('T')[0]
+    if (datesError || !sydneyDates) {
+      logger.error('Error getting Sydney dates:', datesError)
+      return NextResponse.json(
+        { error: 'Failed to get current date' },
+        { status: 500 }
+      )
+    }
+
+    const todayString = sydneyDates.today
+    const weekStartString = sydneyDates.weekStart
 
     // Get current goal to determine if this workout completes it (for points calculation)
     const { data: currentGoal } = await supabase

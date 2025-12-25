@@ -25,10 +25,11 @@ DECLARE
 BEGIN
   -- 1. Check if workout already exists today (with row lock to prevent race conditions)
   -- This SELECT FOR UPDATE locks the row, preventing concurrent inserts
+  -- Uses Sydney time to match user's timezone
   SELECT id INTO v_existing_workout_id
   FROM workouts
   WHERE user_id = p_user_id
-    AND DATE(completed_at AT TIME ZONE 'UTC') = p_today_date
+    AND DATE(completed_at AT TIME ZONE 'Australia/Sydney') = p_today_date
   LIMIT 1
   FOR UPDATE NOWAIT;
 

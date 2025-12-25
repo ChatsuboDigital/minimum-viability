@@ -8,9 +8,9 @@ RETURNS JSON AS $$
 DECLARE
   current_week_start DATE;
 BEGIN
-  -- Calculate current week start (Monday)
+  -- Calculate current week start (Monday) using Sydney time
   -- DATE_TRUNC('week') returns Monday by default (ISO 8601)
-  current_week_start := DATE_TRUNC('week', NOW() AT TIME ZONE 'UTC')::date;
+  current_week_start := DATE_TRUNC('week', NOW() AT TIME ZONE 'Australia/Sydney')::date;
 
   RETURN (
     SELECT json_agg(

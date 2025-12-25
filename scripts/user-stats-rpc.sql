@@ -10,12 +10,12 @@ DECLARE
   today_start TIMESTAMPTZ;
   result JSON;
 BEGIN
-  -- Calculate current week start (Monday) using UTC
+  -- Calculate current week start (Monday) using Sydney time
   -- DATE_TRUNC('week') returns Monday by default (ISO 8601)
-  current_week_start := DATE_TRUNC('week', NOW() AT TIME ZONE 'UTC')::date;
+  current_week_start := DATE_TRUNC('week', NOW() AT TIME ZONE 'Australia/Sydney')::date;
 
-  -- Calculate today's start
-  today_start := DATE_TRUNC('day', NOW() AT TIME ZONE 'UTC');
+  -- Calculate today's start in Sydney time
+  today_start := DATE_TRUNC('day', NOW() AT TIME ZONE 'Australia/Sydney');
 
   SELECT json_build_object(
     'totalWorkouts', COALESCE(workout_stats.total, 0),

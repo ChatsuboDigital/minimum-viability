@@ -30,7 +30,7 @@ export function useMilestones(userId: string | undefined) {
         .from('streaks')
         .select('current_streak, longest_streak')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
 
       // Get consecutive weekly goals
       const { data: weeklyGoals } = await supabase

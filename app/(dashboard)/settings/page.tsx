@@ -55,20 +55,27 @@ export default function SettingsPage() {
         method: 'POST',
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to reset progress')
-      }
-
       const data = await response.json()
 
-      // Invalidate all queries to refresh the UI
-      queryClient.invalidateQueries()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to reset progress')
+      }
+
+      // Clear all query cache and force refetch
+      await queryClient.resetQueries()
+      await queryClient.refetchQueries()
 
       toast.success(data.message)
       setShowResetDialog(false)
       setConfirmText('')
-    } catch (error) {
-      toast.error('Failed to reset progress')
+
+      // Force page reload to ensure everything is fresh
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to reset progress')
+      console.error('Reset error:', error)
     } finally {
       setResetting(false)
     }

@@ -34,10 +34,10 @@ export default function LoginPage() {
       <div className="flex flex-col items-center space-y-2">
         <div className="flex items-center space-x-2">
           <Dumbbell className="h-8 w-8" />
-          <h1 className="text-3xl font-bold">Minimum Viable Workout</h1>
+          <h1 className="text-3xl font-bold">Minimum Viability</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Stay accountable. Build streaks. Get stronger.
+          Track your minimum viable workout. Stay accountable. Build streaks.
         </p>
       </div>
 

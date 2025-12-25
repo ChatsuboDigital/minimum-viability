@@ -1,4 +1,4 @@
--- Minimum Viable Workout - Database Setup Script
+-- Minimum Viability - Database Setup Script
 -- Run this in your Supabase SQL Editor
 
 -- Create tables

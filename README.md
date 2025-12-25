@@ -1,6 +1,6 @@
-# Minimum Viable Workout
+# Minimum Viability
 
-A gamified accountability web app for staying on track with your workouts. Built for two workout partners to hold each other accountable with real-time updates, streaks, points, and milestones.
+A gamified accountability app for tracking your minimum viable habits. Currently focused on workouts, built for two partners to hold each other accountable with real-time updates, streaks, points, and milestones.
 
 ## Features
 
@@ -100,7 +100,7 @@ Vercel will automatically detect Next.js and configure the build settings.
 ## Project Structure
 
 ```
-minimum-viable-workout/
+minimum-viability/
 ├── app/                      # Next.js app directory
 │   ├── (auth)/              # Auth pages (login)
 │   ├── (dashboard)/         # Protected dashboard routes

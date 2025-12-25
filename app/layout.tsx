@@ -9,8 +9,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Minimum Viable Workout",
-  description: "Gamified accountability app for staying on track with your workouts",
+  title: "Minimum Viability",
+  description: "Track your minimum viable habits and stay accountable",
 };
 
 export default function RootLayout({

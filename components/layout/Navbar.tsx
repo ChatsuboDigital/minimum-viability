@@ -19,7 +19,7 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16">
           <Link href="/dashboard" className="flex items-center space-x-2">
             <Dumbbell className="h-6 w-6" />
-            <span className="font-bold text-lg">Minimum Viable Workout</span>
+            <span className="font-bold text-lg">Minimum Viability</span>
           </Link>
 
           <div className="flex items-center space-x-1">

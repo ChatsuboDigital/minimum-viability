@@ -1,4 +1,4 @@
-# Minimum Viable Workout - Setup Guide
+# Minimum Viability - Setup Guide
 
 ## Prerequisites
 - Node.js 18+ installed
@@ -48,7 +48,7 @@
 
 ### Install Dependencies
 ```bash
-cd minimum-viable-workout
+cd minimum-viability
 npm install
 ```
 

@@ -167,27 +167,27 @@ export async function POST(request: Request) {
       .from('milestones')
       .select('milestone_value')
       .eq('user_id', user.id)
-      .eq('milestone_type', MILESTONE_TYPES.TOTAL_WORKOUTS)
+      .eq('milestone_type', MILESTONE_TYPES.TOTAL_SESSIONS)
 
     const achievedValues = achievedMilestones?.map((m) => m.milestone_value) || []
 
-    // Check total workouts milestone
-    const totalWorkoutsMilestone = checkMilestoneAchieved(
-      MILESTONE_TYPES.TOTAL_WORKOUTS,
+    // Check total sessions milestone
+    const totalSessionsMilestone = checkMilestoneAchieved(
+      MILESTONE_TYPES.TOTAL_SESSIONS,
       totalWorkouts || 0,
       achievedValues
     )
 
-    if (totalWorkoutsMilestone) {
+    if (totalSessionsMilestone) {
       await supabase.from('milestones').insert({
         user_id: user.id,
-        milestone_type: MILESTONE_TYPES.TOTAL_WORKOUTS,
-        milestone_value: totalWorkoutsMilestone,
+        milestone_type: MILESTONE_TYPES.TOTAL_SESSIONS,
+        milestone_value: totalSessionsMilestone,
       })
       milestones.push({
-        type: MILESTONE_TYPES.TOTAL_WORKOUTS,
-        value: totalWorkoutsMilestone,
-        message: `${totalWorkoutsMilestone} total workouts`,
+        type: MILESTONE_TYPES.TOTAL_SESSIONS,
+        value: totalSessionsMilestone,
+        message: `${totalSessionsMilestone} times locked in 🔥`,
       })
     }
 
@@ -216,7 +216,7 @@ export async function POST(request: Request) {
       milestones.push({
         type: MILESTONE_TYPES.STREAK,
         value: streakMilestone,
-        message: `${streakMilestone}-day streak`,
+        message: `${streakMilestone}-day streak 🚀`,
       })
     }
 
@@ -234,7 +234,7 @@ export async function POST(request: Request) {
       await supabase.from('notifications').insert({
         user_id: partnerId,
         notification_type: NOTIFICATION_TYPES.PARTNER_COMPLETED,
-        message: 'Your partner just completed a workout!',
+        message: 'Your partner just locked in! 🔥',
       })
     }
 
@@ -245,8 +245,8 @@ export async function POST(request: Request) {
       streak: streakUpdate.currentStreak,
       milestones,
       message: streakUpdate.streakBroken
-        ? 'Workout logged! Starting fresh streak.'
-        : `Workout logged! ${streakUpdate.currentStreak} day streak!`,
+        ? 'Session logged! Starting fresh streak.'
+        : `Session logged! ${streakUpdate.currentStreak} day streak!`,
     })
   } catch (error: any) {
     console.error('Error logging workout:', error)

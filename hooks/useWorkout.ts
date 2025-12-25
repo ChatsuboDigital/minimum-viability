@@ -26,20 +26,33 @@ export function useWorkout() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.message || 'Failed to log workout')
+        throw new Error(error.message || 'Failed to log session')
       }
 
       return response.json()
     },
-    onSuccess: (data) => {
-      // Invalidate relevant queries
+    onMutate: async () => {
+      // Optimistically update UI immediately
+      await queryClient.cancelQueries({ queryKey: ['stats'] })
+
+      // Show immediate feedback
+      toast.loading('Logging session...', { id: 'workout-loading' })
+
+      return { startTime: Date.now() }
+    },
+    onSuccess: (data, variables, context) => {
+      // Dismiss loading toast
+      toast.dismiss('workout-loading')
+
+      // Invalidate and refetch queries
       queryClient.invalidateQueries({ queryKey: ['workouts'] })
       queryClient.invalidateQueries({ queryKey: ['stats'] })
       queryClient.invalidateQueries({ queryKey: ['streak'] })
       queryClient.invalidateQueries({ queryKey: ['weeklyGoal'] })
+      queryClient.invalidateQueries({ queryKey: ['comparison'] })
 
       // Show success message
-      toast.success(`Workout logged! +${data.pointsEarned} points`, {
+      toast.success(`Locked in! +${data.pointsEarned} points`, {
         description: data.message,
       })
 
@@ -51,7 +64,11 @@ export function useWorkout() {
       }
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to log workout')
+      toast.dismiss('workout-loading')
+      toast.error(error.message || 'Failed to log session')
+
+      // Refetch to restore correct state
+      queryClient.invalidateQueries({ queryKey: ['stats'] })
     },
   })
 

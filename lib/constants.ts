@@ -1,6 +1,6 @@
 // Points System
 export const POINTS = {
-  BASE_WORKOUT: 10,
+  BASE_SESSION: 10,
   WEEKLY_GOAL_BONUS: 50,
   SEVEN_DAY_STREAK_BONUS: 25,
   THIRTY_DAY_STREAK_BONUS: 100,
@@ -8,7 +8,7 @@ export const POINTS = {
 
 // Milestone Definitions
 export const MILESTONES = {
-  TOTAL_WORKOUTS: [10, 25, 50, 100, 250],
+  TOTAL_SESSIONS: [10, 25, 50, 100, 250],
   STREAKS: [7, 14, 30, 60, 100],
   WEEKLY_GOALS: [4, 8, 12, 26],
 } as const
@@ -27,7 +27,7 @@ export const NOTIFICATION_TYPES = {
 
 // Milestone Types
 export const MILESTONE_TYPES = {
-  TOTAL_WORKOUTS: 'total_workouts',
+  TOTAL_SESSIONS: 'total_sessions',
   STREAK: 'streak',
   WEEKLY_GOAL: 'weekly_goal',
 } as const

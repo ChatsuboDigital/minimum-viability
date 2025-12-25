@@ -8,9 +8,9 @@ export interface StreakUpdate {
 }
 
 /**
- * Calculate updated streak based on last workout date
- * Grace period: 1 rest day allowed (2 days since last workout)
- * Streak breaks if 3+ days since last workout
+ * Calculate updated streak based on last session date
+ * Grace period: 1 rest day allowed (2 days since last session)
+ * Streak breaks if 3+ days since last session
  */
 export function calculateStreakUpdate(
   lastWorkoutDate: Date | null,
@@ -18,7 +18,7 @@ export function calculateStreakUpdate(
 ): StreakUpdate {
   const today = startOfDay(new Date())
 
-  // First workout ever
+  // First session ever
   if (!lastWorkoutDate) {
     return {
       currentStreak: 1,
@@ -77,13 +77,13 @@ export function calculateStreakUpdate(
 }
 
 /**
- * Calculate total points for a workout
+ * Calculate total points for a session
  */
 export function calculateWorkoutPoints(
   isWeeklyGoalComplete: boolean,
   streakBonusPoints: number
 ): number {
-  let points = POINTS.BASE_WORKOUT
+  let points = POINTS.BASE_SESSION
 
   if (isWeeklyGoalComplete) {
     points += POINTS.WEEKLY_GOAL_BONUS
@@ -105,8 +105,8 @@ export function checkMilestoneAchieved(
   let milestoneValues: readonly number[]
 
   switch (milestoneType) {
-    case MILESTONE_TYPES.TOTAL_WORKOUTS:
-      milestoneValues = MILESTONES.TOTAL_WORKOUTS
+    case MILESTONE_TYPES.TOTAL_SESSIONS:
+      milestoneValues = MILESTONES.TOTAL_SESSIONS
       break
     case MILESTONE_TYPES.STREAK:
       milestoneValues = MILESTONES.STREAKS
@@ -138,8 +138,8 @@ export function getNextMilestone(
   let milestoneValues: readonly number[]
 
   switch (milestoneType) {
-    case MILESTONE_TYPES.TOTAL_WORKOUTS:
-      milestoneValues = MILESTONES.TOTAL_WORKOUTS
+    case MILESTONE_TYPES.TOTAL_SESSIONS:
+      milestoneValues = MILESTONES.TOTAL_SESSIONS
       break
     case MILESTONE_TYPES.STREAK:
       milestoneValues = MILESTONES.STREAKS

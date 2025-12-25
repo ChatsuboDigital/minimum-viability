@@ -37,7 +37,7 @@ export function NotificationList() {
             variant="ghost"
             size="sm"
             onClick={() => markAllAsRead()}
-            className="h-auto p-1 text-xs"
+            className="h-auto p-1 text-xs hover:bg-zinc-800 hover:text-white"
           >
             <CheckCheck className="h-3 w-3 mr-1" />
             Mark all read
@@ -50,8 +50,8 @@ export function NotificationList() {
         {notifications.map((notification) => (
           <div
             key={notification.id}
-            className={`p-3 hover:bg-gray-50 cursor-pointer transition-colors ${
-              !notification.read ? 'bg-blue-50' : ''
+            className={`p-3 hover:bg-zinc-800/50 cursor-pointer transition-colors ${
+              !notification.read ? 'bg-zinc-800/30' : ''
             }`}
             onClick={() => !notification.read && markAsRead(notification.id)}
           >

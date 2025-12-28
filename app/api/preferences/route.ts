@@ -73,14 +73,32 @@ export async function PATCH(request: Request) {
 
     const { weekly_target } = validation.data
 
-    // Upsert preferences (update if exists, insert if not)
+    // Get all users (2-person system)
+    const { data: allUsers, error: usersError } = await supabase
+      .from('users')
+      .select('id')
+
+    if (usersError) {
+      throw usersError
+    }
+
+    // Update weekly target for ALL users (shared goal)
+    const updatePromises = allUsers.map(u =>
+      supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: u.id,
+          weekly_target,
+        })
+    )
+
+    await Promise.all(updatePromises)
+
+    // Get current user's updated preferences
     const { data, error } = await supabase
       .from('user_preferences')
-      .upsert({
-        user_id: user.id,
-        weekly_target,
-      })
       .select()
+      .eq('user_id', user.id)
       .single()
 
     if (error) {

@@ -71,7 +71,13 @@ export default function DashboardPage() {
         <div className="w-full max-w-md px-4 sm:px-0">
           <WorkoutButton
             workedOutToday={stats?.workedOutToday}
-            disabled={stats?.workedOutToday}
+            weeklyGoalAchieved={
+              (stats?.weeklyGoal?.completed ?? 0) >= (stats?.weeklyGoal?.target ?? 4)
+            }
+            disabled={
+              stats?.workedOutToday ||
+              (stats?.weeklyGoal?.completed ?? 0) >= (stats?.weeklyGoal?.target ?? 4)
+            }
           />
         </div>
 

@@ -75,6 +75,14 @@ export async function POST(request: Request) {
       .eq('week_start_date', weekStartString)
       .maybeSingle()
 
+    // Check if weekly goal is already achieved (weekly cap)
+    if (currentGoal && currentGoal.completed_workouts >= weeklyTarget) {
+      return NextResponse.json(
+        { error: 'Weekly goal already complete! New week starts Monday.' },
+        { status: 400 }
+      )
+    }
+
     const isWeeklyGoalComplete =
       currentGoal &&
       currentGoal.completed_workouts + 1 >= weeklyTarget &&

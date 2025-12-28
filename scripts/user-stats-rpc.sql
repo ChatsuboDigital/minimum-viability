@@ -7,15 +7,15 @@ CREATE OR REPLACE FUNCTION get_user_stats(p_user_id UUID)
 RETURNS JSON AS $$
 DECLARE
   current_week_start DATE;
-  today_start TIMESTAMPTZ;
+  today_date DATE;
   result JSON;
 BEGIN
   -- Calculate current week start (Monday) using Sydney time
   -- DATE_TRUNC('week') returns Monday by default (ISO 8601)
   current_week_start := DATE_TRUNC('week', NOW() AT TIME ZONE 'Australia/Sydney')::date;
 
-  -- Calculate today's start in Sydney time
-  today_start := DATE_TRUNC('day', NOW() AT TIME ZONE 'Australia/Sydney');
+  -- Get today's date in Sydney time
+  today_date := DATE(NOW() AT TIME ZONE 'Australia/Sydney');
 
   SELECT json_build_object(
     'totalWorkouts', COALESCE(workout_stats.total, 0),
@@ -48,7 +48,7 @@ BEGIN
       SELECT 1
       FROM workouts w
       WHERE w.user_id = p_user_id
-        AND w.completed_at >= today_start
+        AND DATE(w.completed_at AT TIME ZONE 'Australia/Sydney') = today_date
       LIMIT 1
     ) as exists
   ) today_workout ON true;

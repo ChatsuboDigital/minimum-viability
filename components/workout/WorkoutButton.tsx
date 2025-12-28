@@ -13,17 +13,19 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useWorkout } from '@/hooks/useWorkout'
-import { Check, Sparkles } from 'lucide-react'
+import { Check, Sparkles, Award } from 'lucide-react'
 import { getRandomConfirmation } from '@/lib/confirmations'
 
 interface WorkoutButtonProps {
   disabled?: boolean
   workedOutToday?: boolean
+  weeklyGoalAchieved?: boolean
 }
 
 export function WorkoutButton({
   disabled = false,
   workedOutToday = false,
+  weeklyGoalAchieved = false,
 }: WorkoutButtonProps) {
   const { logWorkout, isLoading } = useWorkout()
   const [showConfirm, setShowConfirm] = useState(false)
@@ -42,6 +44,22 @@ export function WorkoutButton({
     setTimeout(() => logWorkout(), 0)
   }
 
+  // Priority 1: Check if weekly goal is already achieved (weekly cap)
+  if (weeklyGoalAchieved) {
+    return (
+      <Button
+        size="lg"
+        className="w-full h-20 text-xl bg-purple-500/10 border-2 border-purple-500/20 text-purple-400 hover:bg-purple-500/10 cursor-default"
+        disabled
+        aria-label="Weekly goal complete"
+      >
+        <Award className="mr-3 h-6 w-6" />
+        Goal complete
+      </Button>
+    )
+  }
+
+  // Priority 2: Check if already worked out today
   if (workedOutToday) {
     return (
       <Button

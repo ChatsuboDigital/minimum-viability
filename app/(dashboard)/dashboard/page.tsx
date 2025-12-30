@@ -1,6 +1,7 @@
 'use client'
 
 import { WorkoutButton } from '@/components/workout/WorkoutButton'
+import { RetroactiveWorkoutButton } from '@/components/workout/RetroactiveWorkoutButton'
 import { WeekProgress } from '@/components/workout/WeekProgress'
 import { StreakDisplay } from '@/components/workout/StreakDisplay'
 import { ComparisonCard } from '@/components/stats/ComparisonCard'
@@ -68,7 +69,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="w-full max-w-md px-4 sm:px-0">
+        <div className="w-full max-w-md px-4 sm:px-0 space-y-3">
           <WorkoutButton
             workedOutToday={stats?.workedOutToday}
             weeklyGoalAchieved={
@@ -76,6 +77,13 @@ export default function DashboardPage() {
             }
             disabled={
               stats?.workedOutToday ||
+              (stats?.weeklyGoal?.completed ?? 0) >= (stats?.weeklyGoal?.target ?? 4)
+            }
+          />
+          <RetroactiveWorkoutButton
+            disabled={
+              stats?.workedOutToday ||
+              stats?.workedOutYesterday ||
               (stats?.weeklyGoal?.completed ?? 0) >= (stats?.weeklyGoal?.target ?? 4)
             }
           />

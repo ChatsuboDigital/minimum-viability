@@ -30,7 +30,8 @@ BEGIN
       'completed', COALESCE(g.completed_workouts, 0),
       'achieved', COALESCE(g.achieved, false)
     ),
-    'workedOutToday', COALESCE(today_workout.exists, false)
+    'workedOutToday', COALESCE(today_workout.exists, false),
+    'workedOutYesterday', COALESCE(yesterday_workout.exists, false)
   )
   INTO result
   FROM (SELECT 1) dummy -- Dummy table to ensure we always get a row
@@ -51,7 +52,16 @@ BEGIN
         AND DATE(w.completed_at AT TIME ZONE 'Australia/Sydney') = today_date
       LIMIT 1
     ) as exists
-  ) today_workout ON true;
+  ) today_workout ON true
+  LEFT JOIN LATERAL (
+    SELECT EXISTS(
+      SELECT 1
+      FROM workouts w
+      WHERE w.user_id = p_user_id
+        AND DATE(w.completed_at AT TIME ZONE 'Australia/Sydney') = today_date - INTERVAL '1 day'
+      LIMIT 1
+    ) as exists
+  ) yesterday_workout ON true;
 
   RETURN result;
 END;

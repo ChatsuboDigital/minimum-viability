@@ -112,7 +112,7 @@ export function SpotifyTrackFeed() {
                 {/* Footer with user and delete */}
                 <div className="flex items-center justify-between text-xs text-zinc-400 mt-2">
                   <span>
-                    {track.users?.[0]?.username || 'Unknown'} •{' '}
+                    {track.users?.username || 'Unknown'} •{' '}
                     {formatDistanceToNow(new Date(track.created_at), {
                       addSuffix: true,
                     })}

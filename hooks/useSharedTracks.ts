@@ -13,7 +13,7 @@ interface SharedTrack {
   artist_name: string
   spotify_url: string | null
   created_at: string
-  users: { username: string }[] | null
+  users: { username: string } | null
 }
 
 export function useSharedTracks() {

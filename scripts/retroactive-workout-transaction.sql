@@ -29,9 +29,13 @@ BEGIN
   -- Get today's date in Sydney timezone
   v_today_date := DATE(NOW() AT TIME ZONE 'Australia/Sydney');
 
-  -- 1. Validate date is yesterday only
-  IF p_workout_date != (v_today_date - INTERVAL '1 day')::date THEN
-    RAISE EXCEPTION 'Can only log yesterday''s workout';
+  -- 1. Validate date is within last 7 days (accountability window)
+  IF p_workout_date > v_today_date THEN
+    RAISE EXCEPTION 'Cannot log workouts for future dates';
+  END IF;
+
+  IF p_workout_date < (v_today_date - INTERVAL '7 days')::date THEN
+    RAISE EXCEPTION 'Can only log workouts from the last 7 days';
   END IF;
 
   -- 2. Check if workout already exists for this date (with row lock)
@@ -85,12 +89,13 @@ BEGIN
     last_workout_date = EXCLUDED.last_workout_date,
     updated_at = EXCLUDED.updated_at;
 
-  -- 7. Update weekly goal for that specific week
+  -- 7. Update weekly goal for that specific week (CAP AT TARGET)
   INSERT INTO goals (user_id, week_start_date, target_workouts, completed_workouts, achieved)
   VALUES (p_user_id, p_week_start_date, p_target_workouts, 1, (1 >= p_target_workouts))
   ON CONFLICT (user_id, week_start_date)
   DO UPDATE SET
-    completed_workouts = goals.completed_workouts + 1,
+    -- Cap completed_workouts at target_workouts (don't go over)
+    completed_workouts = LEAST(goals.completed_workouts + 1, goals.target_workouts),
     achieved = CASE
       WHEN goals.completed_workouts + 1 >= goals.target_workouts THEN true
       ELSE goals.achieved

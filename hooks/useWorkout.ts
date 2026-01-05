@@ -49,15 +49,19 @@ export function useWorkout() {
       queryClient.setQueryData(['stats', user?.id], (old: any) => {
         if (!old) return old
 
+        const newCompleted = Math.min(
+          (old.weeklyGoal?.completed || 0) + 1,
+          old.weeklyGoal?.target || 4
+        )
+
         return {
           ...old,
           totalWorkouts: (old.totalWorkouts || 0) + 1,
           totalPoints: (old.totalPoints || 0) + 10, // Base points
           weeklyGoal: {
             ...old.weeklyGoal,
-            completed: (old.weeklyGoal?.completed || 0) + 1,
-            achieved:
-              (old.weeklyGoal?.completed || 0) + 1 >= (old.weeklyGoal?.target || 4),
+            completed: newCompleted,
+            achieved: newCompleted >= (old.weeklyGoal?.target || 4),
           },
           // Don't optimistically update streak - server will calculate correctly
           workedOutToday: true,

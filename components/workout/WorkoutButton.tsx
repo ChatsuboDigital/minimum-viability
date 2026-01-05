@@ -15,6 +15,7 @@ import {
 import { useWorkout } from '@/hooks/useWorkout'
 import { Check, Sparkles, Award } from 'lucide-react'
 import { getRandomConfirmation } from '@/lib/confirmations'
+import { SuperSaiyanCelebration } from './SuperSaiyanCelebration'
 
 interface WorkoutButtonProps {
   disabled?: boolean
@@ -29,6 +30,7 @@ export function WorkoutButton({
 }: WorkoutButtonProps) {
   const { logWorkout, isLoading } = useWorkout()
   const [showConfirm, setShowConfirm] = useState(false)
+  const [showCelebration, setShowCelebration] = useState(false)
   const [confirmation, setConfirmation] = useState(getRandomConfirmation())
 
   const handleClick = () => {
@@ -40,6 +42,8 @@ export function WorkoutButton({
   const handleConfirm = () => {
     // Immediately close dialog and log - no delay
     setShowConfirm(false)
+    // Show Super Saiyan celebration
+    setShowCelebration(true)
     // Use setTimeout 0 to ensure dialog closes first, then immediate execution
     setTimeout(() => logWorkout(), 0)
   }
@@ -115,6 +119,11 @@ export function WorkoutButton({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <SuperSaiyanCelebration
+        open={showCelebration}
+        onOpenChange={setShowCelebration}
+      />
     </>
   )
 }

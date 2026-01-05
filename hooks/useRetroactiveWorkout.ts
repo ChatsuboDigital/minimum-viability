@@ -10,7 +10,7 @@ export function useRetroactiveWorkout() {
   const supabase = createClient()
 
   const logRetroactiveWorkout = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (workoutDate?: string) => {
       const {
         data: { user },
       } = await supabase.auth.getUser()
@@ -22,6 +22,7 @@ export function useRetroactiveWorkout() {
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ workoutDate }),
       })
 
       if (!response.ok) {

@@ -16,6 +16,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get optional workout date from request body
+    const body = await request.json().catch(() => ({}))
+    const { workoutDate } = body
+
     // Get Sydney dates
     const { data: sydneyDates, error: datesError } = await supabase.rpc(
       'get_sydney_dates'
@@ -29,13 +33,28 @@ export async function POST(request: Request) {
       )
     }
 
-    // Calculate yesterday's date (pure date arithmetic to avoid timezone issues)
-    const todayParts = sydneyDates.today.split('-').map(Number)
-    const todayDateObj = new Date(
-      Date.UTC(todayParts[0], todayParts[1] - 1, todayParts[2])
-    )
-    todayDateObj.setUTCDate(todayDateObj.getUTCDate() - 1)
-    const yesterdayString = todayDateObj.toISOString().split('T')[0]
+    // Use provided date or calculate yesterday
+    let targetDateString: string
+    if (workoutDate) {
+      // Validate that the date is not in the future
+      if (workoutDate > sydneyDates.today) {
+        return NextResponse.json(
+          { error: 'Cannot log workouts for future dates' },
+          { status: 400 }
+        )
+      }
+      targetDateString = workoutDate
+    } else {
+      // Calculate yesterday's date (pure date arithmetic to avoid timezone issues)
+      const todayParts = sydneyDates.today.split('-').map(Number)
+      const todayDateObj = new Date(
+        Date.UTC(todayParts[0], todayParts[1] - 1, todayParts[2])
+      )
+      todayDateObj.setUTCDate(todayDateObj.getUTCDate() - 1)
+      targetDateString = todayDateObj.toISOString().split('T')[0]
+    }
+
+    const yesterdayString = targetDateString
 
     // Calculate week start for yesterday's week (using UTC to avoid timezone shifts)
     const yesterdayParts = yesterdayString.split('-').map(Number)

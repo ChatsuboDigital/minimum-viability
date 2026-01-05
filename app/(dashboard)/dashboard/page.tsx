@@ -1,7 +1,6 @@
 'use client'
 
 import { WorkoutButton } from '@/components/workout/WorkoutButton'
-import { RetroactiveWorkoutButton } from '@/components/workout/RetroactiveWorkoutButton'
 import { DatePickerWorkoutButton } from '@/components/workout/DatePickerWorkoutButton'
 import { RecentWorkoutsList } from '@/components/workout/RecentWorkoutsList'
 import { WeekProgress } from '@/components/workout/WeekProgress'
@@ -80,13 +79,6 @@ export default function DashboardPage() {
             }
             disabled={
               stats?.workedOutToday ||
-              (stats?.weeklyGoal?.completed ?? 0) >= (stats?.weeklyGoal?.target ?? 4)
-            }
-          />
-          <RetroactiveWorkoutButton
-            disabled={
-              stats?.workedOutToday ||
-              stats?.workedOutYesterday ||
               (stats?.weeklyGoal?.completed ?? 0) >= (stats?.weeklyGoal?.target ?? 4)
             }
           />

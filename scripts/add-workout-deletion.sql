@@ -46,7 +46,8 @@ BEGIN
   END IF;
 
   -- Calculate week start for the workout's week (Monday)
-  v_workout_week_start := DATE_TRUNC('week', v_workout_date::timestamp)::date + 1;
+  -- DATE_TRUNC('week') already returns Monday, don't add 1!
+  v_workout_week_start := DATE_TRUNC('week', v_workout_date::timestamp)::date;
 
   -- Delete the workout
   DELETE FROM workouts

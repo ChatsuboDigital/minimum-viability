@@ -13,7 +13,6 @@ interface SharedTrack {
   artist_name: string
   spotify_url: string | null
   created_at: string
-  users: { username: string }[] | null
 }
 
 export function useSharedTracks() {
@@ -34,8 +33,7 @@ export function useSharedTracks() {
           track_name,
           artist_name,
           spotify_url,
-          created_at,
-          users(username)
+          created_at
         `
         )
         .order('created_at', { ascending: false })

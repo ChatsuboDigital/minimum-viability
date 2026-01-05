@@ -109,10 +109,9 @@ export function SpotifyTrackFeed() {
                   title={`${track.track_name} by ${track.artist_name}`}
                 />
 
-                {/* Footer with user and delete */}
+                {/* Footer with timestamp and delete */}
                 <div className="flex items-center justify-between text-xs text-zinc-400 mt-2">
                   <span>
-                    {track.users?.[0]?.username || 'Unknown'} •{' '}
                     {formatDistanceToNow(new Date(track.created_at), {
                       addSuffix: true,
                     })}

@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useRetroactiveWorkout } from '@/hooks/useRetroactiveWorkout'
 import { Calendar } from 'lucide-react'
-import { SuperSaiyanCelebration } from './SuperSaiyanCelebration'
 
 interface RetroactiveWorkoutButtonProps {
   disabled?: boolean
@@ -25,7 +24,6 @@ export function RetroactiveWorkoutButton({
 }: RetroactiveWorkoutButtonProps) {
   const { logRetroactiveWorkout, isLoading } = useRetroactiveWorkout()
   const [showConfirm, setShowConfirm] = useState(false)
-  const [showCelebration, setShowCelebration] = useState(false)
 
   const handleClick = () => {
     setShowConfirm(true)
@@ -33,7 +31,6 @@ export function RetroactiveWorkoutButton({
 
   const handleConfirm = () => {
     setShowConfirm(false)
-    setShowCelebration(true)
     setTimeout(() => logRetroactiveWorkout(undefined), 0)
   }
 
@@ -81,11 +78,6 @@ export function RetroactiveWorkoutButton({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <SuperSaiyanCelebration
-        open={showCelebration}
-        onOpenChange={setShowCelebration}
-      />
     </>
   )
 }

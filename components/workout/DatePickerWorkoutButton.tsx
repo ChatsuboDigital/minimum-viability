@@ -41,10 +41,10 @@ export function DatePickerWorkoutButton({
     setSelectedDate('')
   }
 
-  // Get max date (today) and min date (e.g., 30 days ago)
+  // Get max date (today) and min date (7 days ago for accountability)
   const today = new Date()
   const maxDate = format(today, 'yyyy-MM-dd')
-  const minDate = format(new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
+  const minDate = format(new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
 
   if (disabled) return null
 
@@ -91,7 +91,7 @@ export function DatePickerWorkoutButton({
               className="bg-zinc-800 border-zinc-700 text-white"
             />
             <p className="text-xs text-zinc-500 mt-2">
-              Can only log workouts from the last 30 days
+              Can only log workouts from the last 7 days
             </p>
           </div>
 

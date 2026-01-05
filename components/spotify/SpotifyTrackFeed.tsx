@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Music, Share2, Trash2, X } from 'lucide-react'
+import { Music, Share2, Trash2, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 
@@ -16,6 +16,8 @@ export function SpotifyTrackFeed() {
     useSharedTracks()
   const [spotifyUrl, setSpotifyUrl] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const tracksPerPage = 5
 
   const handleShare = async () => {
     if (!spotifyUrl) {
@@ -28,6 +30,24 @@ export function SpotifyTrackFeed() {
         setShowForm(false)
       },
     })
+  }
+
+  // Pagination calculations
+  const totalPages = Math.ceil((tracks?.length || 0) / tracksPerPage)
+  const startIndex = (currentPage - 1) * tracksPerPage
+  const endIndex = startIndex + tracksPerPage
+  const currentTracks = tracks?.slice(startIndex, endIndex) || []
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1)
+    }
   }
 
   return (
@@ -91,8 +111,9 @@ export function SpotifyTrackFeed() {
             ))}
           </div>
         ) : tracks && tracks.length > 0 ? (
-          <div className="space-y-3">
-            {tracks.map((track) => (
+          <>
+            <div className="space-y-3">
+              {currentTracks.map((track) => (
               <div
                 key={track.id}
                 className="p-3 bg-zinc-900 rounded-lg border border-zinc-800 hover:border-zinc-700 transition"
@@ -132,6 +153,38 @@ export function SpotifyTrackFeed() {
               </div>
             ))}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-800">
+              <Button
+                onClick={goToPrevPage}
+                disabled={currentPage === 1}
+                variant="ghost"
+                size="sm"
+                className="text-zinc-400 hover:text-white disabled:opacity-50"
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+
+              <span className="text-sm text-zinc-500">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <Button
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages}
+                variant="ghost"
+                size="sm"
+                className="text-zinc-400 hover:text-white disabled:opacity-50"
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          )}
+        </>
         ) : (
           <div className="p-8 text-center">
             <Music className="h-12 w-12 mx-auto mb-3 text-zinc-600" />

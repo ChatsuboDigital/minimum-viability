@@ -26,7 +26,23 @@ export async function GET(request: Request) {
       return handleAuthError()
     }
 
-    // Fetch recent tracks (limit 20 for performance)
+    // Get pagination parameters from URL
+    const url = new URL(request.url)
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '5')
+    const offset = (page - 1) * limit
+
+    // Get total count for pagination
+    const { count, error: countError } = await supabase
+      .from('shared_tracks')
+      .select('*', { count: 'exact', head: true })
+
+    if (countError) {
+      logger.error('Error counting tracks:', countError)
+      throw countError
+    }
+
+    // Fetch paginated tracks
     const { data: tracks, error } = await supabase
       .from('shared_tracks')
       .select(
@@ -41,14 +57,22 @@ export async function GET(request: Request) {
       `
       )
       .order('created_at', { ascending: false })
-      .limit(20)
+      .range(offset, offset + limit - 1)
 
     if (error) {
       logger.error('Error fetching tracks:', error)
       throw error
     }
 
-    return handleSuccess({ tracks })
+    return handleSuccess({
+      tracks,
+      pagination: {
+        page,
+        limit,
+        total: count || 0,
+        totalPages: Math.ceil((count || 0) / limit),
+      },
+    })
   } catch (error) {
     return handleApiError(error, 'GET /api/tracks')
   }

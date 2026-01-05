@@ -12,12 +12,13 @@ import { formatDistanceToNow } from 'date-fns'
 
 export function SpotifyTrackFeed() {
   const { user } = useAuth()
-  const { tracks, isLoading, shareTrack, deleteTrack, isSharing } =
-    useSharedTracks()
   const [spotifyUrl, setSpotifyUrl] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
   const tracksPerPage = 5
+
+  const { tracks, pagination, isLoading, shareTrack, deleteTrack, isSharing } =
+    useSharedTracks(currentPage, tracksPerPage)
 
   const handleShare = async () => {
     if (!spotifyUrl) {
@@ -28,18 +29,14 @@ export function SpotifyTrackFeed() {
       onSuccess: () => {
         setSpotifyUrl('')
         setShowForm(false)
+        // Reset to page 1 to see the new track
+        setCurrentPage(1)
       },
     })
   }
 
-  // Pagination calculations
-  const totalPages = Math.ceil((tracks?.length || 0) / tracksPerPage)
-  const startIndex = (currentPage - 1) * tracksPerPage
-  const endIndex = startIndex + tracksPerPage
-  const currentTracks = tracks?.slice(startIndex, endIndex) || []
-
   const goToNextPage = () => {
-    if (currentPage < totalPages) {
+    if (currentPage < pagination.totalPages) {
       setCurrentPage(currentPage + 1)
     }
   }
@@ -113,7 +110,7 @@ export function SpotifyTrackFeed() {
         ) : tracks && tracks.length > 0 ? (
           <>
             <div className="space-y-3">
-              {currentTracks.map((track) => (
+              {tracks.map((track) => (
               <div
                 key={track.id}
                 className="p-3 bg-zinc-900 rounded-lg border border-zinc-800 hover:border-zinc-700 transition"
@@ -155,7 +152,7 @@ export function SpotifyTrackFeed() {
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
+          {pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-zinc-800">
               <Button
                 onClick={goToPrevPage}
@@ -169,12 +166,12 @@ export function SpotifyTrackFeed() {
               </Button>
 
               <span className="text-sm text-zinc-500">
-                Page {currentPage} of {totalPages}
+                Page {currentPage} of {pagination.totalPages} ({pagination.total} tracks)
               </span>
 
               <Button
                 onClick={goToNextPage}
-                disabled={currentPage === totalPages}
+                disabled={currentPage === pagination.totalPages}
                 variant="ghost"
                 size="sm"
                 className="text-zinc-400 hover:text-white disabled:opacity-50"

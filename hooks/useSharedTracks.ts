@@ -15,34 +15,25 @@ interface SharedTrack {
   created_at: string
 }
 
-export function useSharedTracks() {
+export function useSharedTracks(page: number = 1, limit: number = 5) {
   const supabase = createClient()
   const queryClient = useQueryClient()
 
-  // Fetch tracks
-  const { data: tracks, isLoading } = useQuery({
-    queryKey: ['shared_tracks'],
+  // Fetch tracks with server-side pagination
+  const { data, isLoading } = useQuery({
+    queryKey: ['shared_tracks', page, limit],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shared_tracks')
-        .select(
-          `
-          id,
-          user_id,
-          spotify_track_id,
-          track_name,
-          artist_name,
-          spotify_url,
-          created_at
-        `
-        )
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-      if (error) throw error
-      return data as SharedTrack[]
+      const response = await fetch(`/api/tracks?page=${page}&limit=${limit}`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch tracks')
+      }
+      const result = await response.json()
+      return result
     },
   })
+
+  const tracks = data?.tracks || []
+  const pagination = data?.pagination || { page: 1, limit: 5, total: 0, totalPages: 0 }
 
   // Real-time subscription for new tracks
   useEffect(() => {
@@ -137,6 +128,7 @@ export function useSharedTracks() {
 
   return {
     tracks,
+    pagination,
     isLoading,
     shareTrack: shareTrack.mutate,
     deleteTrack: deleteTrack.mutate,

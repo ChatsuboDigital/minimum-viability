@@ -3,6 +3,7 @@
 import { WorkoutButton } from '@/components/workout/WorkoutButton'
 import { RetroactiveWorkoutButton } from '@/components/workout/RetroactiveWorkoutButton'
 import { DatePickerWorkoutButton } from '@/components/workout/DatePickerWorkoutButton'
+import { RecentWorkoutsList } from '@/components/workout/RecentWorkoutsList'
 import { WeekProgress } from '@/components/workout/WeekProgress'
 import { StreakDisplay } from '@/components/workout/StreakDisplay'
 import { ComparisonCard } from '@/components/stats/ComparisonCard'
@@ -133,6 +134,11 @@ export default function DashboardPage() {
 
         <div className="pt-4">
           <ComparisonCard />
+        </div>
+
+        {/* Recent Workouts */}
+        <div className="pt-6">
+          <RecentWorkoutsList />
         </div>
 
         {/* Minimum Viability Box */}

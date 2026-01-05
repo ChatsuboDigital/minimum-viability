@@ -1,8 +1,9 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { logger } from '@/lib/logger'
+import { useEffect } from 'react'
 
 interface Workout {
   id: string
@@ -15,8 +16,9 @@ interface Workout {
 
 export function useRecentWorkouts() {
   const supabase = createClient()
+  const queryClient = useQueryClient()
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['recent-workouts'],
     queryFn: async () => {
       const {
@@ -39,4 +41,29 @@ export function useRecentWorkouts() {
     },
     staleTime: 30000, // Consider data fresh for 30 seconds
   })
+
+  // Real-time subscription for workout changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('recent-workouts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'workouts',
+        },
+        () => {
+          // Refetch recent workouts when any workout changes
+          queryClient.invalidateQueries({ queryKey: ['recent-workouts'] })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [supabase, queryClient])
+
+  return query
 }

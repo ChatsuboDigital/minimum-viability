@@ -1,14 +1,16 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { MILESTONES, MILESTONE_TYPES } from '@/lib/constants'
 import { getMilestoneProgress } from '@/lib/gamification'
+import { useEffect } from 'react'
 
 export function useMilestones(userId: string | undefined) {
   const supabase = createClient()
+  const queryClient = useQueryClient()
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ['milestones', userId],
     queryFn: async () => {
       if (!userId) throw new Error('User ID required')
@@ -127,4 +129,67 @@ export function useMilestones(userId: string | undefined) {
     },
     enabled: !!userId,
   })
+
+  // Real-time subscription for milestone-related changes
+  useEffect(() => {
+    if (!userId) return
+
+    const channel = supabase
+      .channel('milestones-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'milestones',
+        },
+        () => {
+          // Refetch when new milestones achieved
+          queryClient.invalidateQueries({ queryKey: ['milestones', userId] })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'workouts',
+        },
+        () => {
+          // Refetch when workouts change (affects total sessions)
+          queryClient.invalidateQueries({ queryKey: ['milestones', userId] })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'streaks',
+        },
+        () => {
+          // Refetch when streaks change
+          queryClient.invalidateQueries({ queryKey: ['milestones', userId] })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'goals',
+        },
+        () => {
+          // Refetch when goals change (affects weekly goal milestones)
+          queryClient.invalidateQueries({ queryKey: ['milestones', userId] })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [userId, supabase, queryClient])
+
+  return query
 }

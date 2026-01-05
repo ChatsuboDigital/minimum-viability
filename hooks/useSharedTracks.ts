@@ -89,17 +89,13 @@ export function useSharedTracks() {
 
   // Share track mutation
   const shareTrack = useMutation({
-    mutationFn: async (trackData: {
-      spotifyUrl: string
-      trackName: string
-      artistName: string
-    }) => {
+    mutationFn: async (spotifyUrl: string) => {
       const response = await fetch('/api/tracks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(trackData),
+        body: JSON.stringify({ spotifyUrl }),
       })
 
       if (!response.ok) {

@@ -62,16 +62,6 @@ export const shareSpotifyTrackSchema = z.object({
       (url) => url.includes('spotify.com/track/'),
       'Must be a Spotify track URL'
     ),
-  trackName: z
-    .string()
-    .min(1, 'Track name is required')
-    .max(200, 'Track name must be 200 characters or less')
-    .trim(),
-  artistName: z
-    .string()
-    .min(1, 'Artist name is required')
-    .max(200, 'Artist name must be 200 characters or less')
-    .trim(),
 })
 
 // Helper function to extract Spotify track ID from URL

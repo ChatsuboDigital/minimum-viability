@@ -77,12 +77,39 @@ export async function POST(request: Request) {
       return handleValidationError(validation.error)
     }
 
-    const { spotifyUrl, trackName, artistName } = validation.data
+    const { spotifyUrl } = validation.data
 
     // Extract track ID from URL
     const trackId = extractSpotifyTrackId(spotifyUrl)
     if (!trackId) {
       return handleValidationError('Could not extract Spotify track ID from URL')
+    }
+
+    // Fetch track metadata from Spotify oEmbed API
+    let trackName = 'Unknown Track'
+    let artistName = 'Unknown Artist'
+
+    try {
+      const oembedUrl = `https://open.spotify.com/oembed?url=${encodeURIComponent(spotifyUrl)}`
+      const oembedResponse = await fetch(oembedUrl)
+
+      if (oembedResponse.ok) {
+        const oembedData = await oembedResponse.json()
+        // oEmbed title format is typically "Song Name" or "Artist - Song Name"
+        const title = oembedData.title || ''
+
+        // Try to parse "Artist · Track" format (Spotify uses middot)
+        if (title.includes(' · ')) {
+          const parts = title.split(' · ')
+          trackName = parts[0].trim()
+          artistName = parts[1]?.trim() || 'Unknown Artist'
+        } else {
+          trackName = title
+        }
+      }
+    } catch (error) {
+      logger.error('Error fetching Spotify oEmbed data:', error)
+      // Continue with default values if oEmbed fails
     }
 
     // Insert track

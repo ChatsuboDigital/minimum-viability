@@ -15,26 +15,19 @@ export function SpotifyTrackFeed() {
   const { tracks, isLoading, shareTrack, deleteTrack, isSharing } =
     useSharedTracks()
   const [spotifyUrl, setSpotifyUrl] = useState('')
-  const [trackName, setTrackName] = useState('')
-  const [artistName, setArtistName] = useState('')
   const [showForm, setShowForm] = useState(false)
 
   const handleShare = async () => {
-    if (!spotifyUrl || !trackName || !artistName) {
+    if (!spotifyUrl) {
       return
     }
 
-    shareTrack(
-      { spotifyUrl, trackName, artistName },
-      {
-        onSuccess: () => {
-          setSpotifyUrl('')
-          setTrackName('')
-          setArtistName('')
-          setShowForm(false)
-        },
-      }
-    )
+    shareTrack(spotifyUrl, {
+      onSuccess: () => {
+        setSpotifyUrl('')
+        setShowForm(false)
+      },
+    })
   }
 
   return (
@@ -62,7 +55,7 @@ export function SpotifyTrackFeed() {
         {showForm && (
           <div className="space-y-3 p-4 bg-zinc-900 rounded-lg border border-zinc-800">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium">Share a Spotify track</p>
+              <p className="text-sm font-medium">Paste Spotify track link</p>
               <Button
                 onClick={() => setShowForm(false)}
                 variant="ghost"
@@ -73,30 +66,19 @@ export function SpotifyTrackFeed() {
               </Button>
             </div>
             <Input
-              placeholder="Spotify track URL"
+              placeholder="https://open.spotify.com/track/..."
               value={spotifyUrl}
               onChange={(e) => setSpotifyUrl(e.target.value)}
               className="text-sm"
-            />
-            <Input
-              placeholder="Track name"
-              value={trackName}
-              onChange={(e) => setTrackName(e.target.value)}
-              className="text-sm"
-            />
-            <Input
-              placeholder="Artist name"
-              value={artistName}
-              onChange={(e) => setArtistName(e.target.value)}
-              className="text-sm"
+              autoFocus
             />
             <Button
               onClick={handleShare}
-              disabled={isSharing || !spotifyUrl || !trackName || !artistName}
+              disabled={isSharing || !spotifyUrl}
               size="sm"
               className="w-full"
             >
-              {isSharing ? 'Sharing...' : 'Share Track'}
+              {isSharing ? 'Fetching track info...' : 'Share Track'}
             </Button>
           </div>
         )}

@@ -109,7 +109,7 @@ export async function POST(request: Request) {
         track: newTrack,
         message: 'Track shared!',
       },
-      { status: 201 }
+      201
     )
   } catch (error) {
     return handleApiError(error, 'POST /api/tracks')
@@ -150,7 +150,7 @@ export async function DELETE(request: Request) {
     }
 
     if (track.user_id !== user.id) {
-      return handleAuthError('Can only delete your own tracks')
+      return handleAuthError()
     }
 
     // Delete track

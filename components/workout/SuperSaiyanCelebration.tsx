@@ -32,7 +32,7 @@ export function SuperSaiyanCelebration({
         <div className="relative w-full aspect-video flex items-center justify-center">
           {/* Super Saiyan GIF */}
           <img
-            src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbDd5ZHE4OXN6YnU2ZWQ3bDNpZmE3YmN6OHZxdmRtYXI3OHNmNGRxZCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/dxld1UBIiGuoh31Fus/giphy.gif"
+            src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNDU1amhydWJyaHVleWlmdmhpYTkyNG1hMDZocnA0cm90dGF3MzR0NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/WN16kBTKVAEuI/giphy.gif"
             alt="Super Saiyan transformation"
             className="w-full h-full object-contain rounded-lg"
           />

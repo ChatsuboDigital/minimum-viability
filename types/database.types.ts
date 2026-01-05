@@ -159,6 +159,35 @@ export interface Database {
           created_at?: string
         }
       }
+      shared_tracks: {
+        Row: {
+          id: string
+          user_id: string
+          spotify_track_id: string
+          track_name: string
+          artist_name: string
+          spotify_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          spotify_track_id: string
+          track_name: string
+          artist_name: string
+          spotify_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          spotify_track_id?: string
+          track_name?: string
+          artist_name?: string
+          spotify_url?: string | null
+          created_at?: string
+        }
+      }
     }
   }
 }

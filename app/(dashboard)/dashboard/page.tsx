@@ -7,6 +7,7 @@ import { StreakDisplay } from '@/components/workout/StreakDisplay'
 import { ComparisonCard } from '@/components/stats/ComparisonCard'
 import { StatsCard } from '@/components/stats/StatsCard'
 import { MinimumViabilityBox } from '@/components/focus/MinimumViabilityBox'
+import { SpotifyTrackFeed } from '@/components/spotify/SpotifyTrackFeed'
 import { useUserStats } from '@/hooks/useStats'
 import { useAuth } from '@/hooks/useAuth'
 import { Activity, Award } from 'lucide-react'
@@ -131,6 +132,11 @@ export default function DashboardPage() {
         {/* Minimum Viability Box */}
         <div className="pt-6">
           <MinimumViabilityBox />
+        </div>
+
+        {/* Spotify Track Feed */}
+        <div className="pt-6">
+          <SpotifyTrackFeed />
         </div>
       </div>
     </div>

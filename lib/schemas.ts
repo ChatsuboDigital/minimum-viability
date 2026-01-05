@@ -53,6 +53,33 @@ export const logWorkoutSchema = z.object({
   userId: z.string().uuid().optional(), // Optional since we get from auth
 })
 
+// Spotify track schemas
+export const shareSpotifyTrackSchema = z.object({
+  spotifyUrl: z
+    .string()
+    .url('Invalid URL')
+    .refine(
+      (url) => url.includes('spotify.com/track/'),
+      'Must be a Spotify track URL'
+    ),
+  trackName: z
+    .string()
+    .min(1, 'Track name is required')
+    .max(200, 'Track name must be 200 characters or less')
+    .trim(),
+  artistName: z
+    .string()
+    .min(1, 'Artist name is required')
+    .max(200, 'Artist name must be 200 characters or less')
+    .trim(),
+})
+
+// Helper function to extract Spotify track ID from URL
+export function extractSpotifyTrackId(url: string): string | null {
+  const match = url.match(/spotify\.com\/track\/([a-zA-Z0-9]+)/)
+  return match?.[1] || null
+}
+
 // Helper function for validation with clear error messages
 export function validateRequest<T>(
   schema: z.ZodSchema<T>,
@@ -84,3 +111,4 @@ export type UpdateModuleInput = z.infer<typeof updateModuleSchema>
 export type DeleteModuleInput = z.infer<typeof deleteModuleSchema>
 export type UpdatePreferencesInput = z.infer<typeof updatePreferencesSchema>
 export type LogWorkoutInput = z.infer<typeof logWorkoutSchema>
+export type ShareSpotifyTrackInput = z.infer<typeof shareSpotifyTrackSchema>

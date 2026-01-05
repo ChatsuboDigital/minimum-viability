@@ -38,7 +38,7 @@ export async function GET(request: Request) {
         artist_name,
         spotify_url,
         created_at,
-        users:user_id(username)
+        users!user_id(username)
       `
       )
       .order('created_at', { ascending: false })

@@ -35,7 +35,7 @@ export function useSharedTracks() {
           artist_name,
           spotify_url,
           created_at,
-          users:user_id(username)
+          users!user_id(username)
         `
         )
         .order('created_at', { ascending: false })

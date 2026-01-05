@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 interface SuperSaiyanCelebrationProps {
   open: boolean
@@ -11,41 +12,81 @@ export function SuperSaiyanCelebration({
   open,
   onOpenChange,
 }: SuperSaiyanCelebrationProps) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+    return () => setMounted(false)
+  }, [])
+
   useEffect(() => {
     if (open) {
+      console.log('🔥 SUPER SAIYAN CELEBRATION TRIGGERED!')
+      document.body.style.overflow = 'hidden'
+
       // Auto-close after 5 seconds
       const timer = setTimeout(() => {
+        console.log('🔥 Closing celebration')
         onOpenChange(false)
       }, 5000)
 
-      return () => clearTimeout(timer)
+      return () => {
+        clearTimeout(timer)
+        document.body.style.overflow = 'unset'
+      }
     }
   }, [open, onOpenChange])
 
-  if (!open) return null
+  if (!open || !mounted) return null
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl aspect-video flex items-center justify-center">
-        {/* Super Saiyan GIF */}
+  return createPortal(
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black"
+      style={{
+        zIndex: 99999,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
+    >
+      <div className="relative w-full h-full max-w-6xl flex items-center justify-center p-4">
+        {/* Super Saiyan GIF - Using direct Giphy URL */}
         <img
-          src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExNDU1amhydWJyaHVleWlmdmhpYTkyNG1hMDZocnA0cm90dGF3MzR0NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/WN16kBTKVAEuI/giphy.gif"
+          src="https://media.giphy.com/media/WN16kBTKVAEuI/giphy.gif"
           alt="Super Saiyan transformation"
           className="w-full h-full object-contain"
+          style={{ maxHeight: '90vh' }}
+          onLoad={() => console.log('🔥 GIF loaded!')}
+          onError={(e) => console.error('🔥 GIF failed to load:', e)}
         />
 
         {/* Overlay text */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-center space-y-6 drop-shadow-[0_0_30px_rgba(0,0,0,1)]">
-            <h2 className="text-8xl font-black text-white animate-pulse tracking-widest">
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          <div className="text-center space-y-8">
+            <h2
+              className="font-black text-white animate-pulse tracking-widest"
+              style={{
+                fontSize: 'clamp(3rem, 15vw, 10rem)',
+                textShadow: '0 0 40px rgba(0,0,0,1), 0 0 20px rgba(255,215,0,0.5)'
+              }}
+            >
               LOCKED IN
             </h2>
-            <p className="text-4xl text-yellow-300 font-bold animate-pulse">
+            <p
+              className="text-yellow-300 font-bold animate-pulse"
+              style={{
+                fontSize: 'clamp(1.5rem, 5vw, 4rem)',
+                textShadow: '0 0 20px rgba(0,0,0,1)'
+              }}
+            >
               ⚡ Power level: MAXIMUM ⚡
             </p>
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

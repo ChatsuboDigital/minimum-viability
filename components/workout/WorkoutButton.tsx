@@ -48,9 +48,12 @@ export function WorkoutButton({
     setTimeout(() => logWorkout(), 0)
   }
 
+  // Render button based on state
+  let buttonContent
+
   // Priority 1: Check if weekly goal is already achieved (weekly cap)
   if (weeklyGoalAchieved) {
-    return (
+    buttonContent = (
       <Button
         size="lg"
         className="w-full h-20 text-xl bg-purple-500/10 border-2 border-purple-500/20 text-purple-400 hover:bg-purple-500/10 cursor-default"
@@ -62,10 +65,9 @@ export function WorkoutButton({
       </Button>
     )
   }
-
   // Priority 2: Check if already worked out today
-  if (workedOutToday) {
-    return (
+  else if (workedOutToday) {
+    buttonContent = (
       <Button
         size="lg"
         className="w-full h-20 text-xl bg-green-500/10 border-2 border-green-500/20 text-green-400 hover:bg-green-500/10 cursor-default"
@@ -77,49 +79,58 @@ export function WorkoutButton({
       </Button>
     )
   }
+  // Priority 3: Show the active workout button
+  else {
+    buttonContent = (
+      <>
+        <Button
+          size="lg"
+          className="w-full h-20 text-xl bg-white hover:bg-zinc-100 text-black font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
+          onClick={handleClick}
+          disabled={disabled || isLoading}
+        >
+          {isLoading ? (
+            <>Loading...</>
+          ) : (
+            <>
+              <Sparkles className="mr-3 h-6 w-6" />
+              Mark as done
+            </>
+          )}
+        </Button>
+
+        <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+          <AlertDialogContent className="bg-zinc-900 border-zinc-800">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-white text-xl">
+                {confirmation.title}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-zinc-400 text-base">
+                {confirmation.description}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
+                Nah, not yet
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleConfirm}
+                className="bg-white text-black hover:bg-zinc-100"
+              >
+                Yes, I did it
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    )
+  }
 
   return (
     <>
-      <Button
-        size="lg"
-        className="w-full h-20 text-xl bg-white hover:bg-zinc-100 text-black font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02]"
-        onClick={handleClick}
-        disabled={disabled || isLoading}
-      >
-        {isLoading ? (
-          <>Loading...</>
-        ) : (
-          <>
-            <Sparkles className="mr-3 h-6 w-6" />
-            Mark as done
-          </>
-        )}
-      </Button>
+      {buttonContent}
 
-      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <AlertDialogContent className="bg-zinc-900 border-zinc-800">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white text-xl">
-              {confirmation.title}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-zinc-400 text-base">
-              {confirmation.description}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700">
-              Nah, not yet
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirm}
-              className="bg-white text-black hover:bg-zinc-100"
-            >
-              Yes, I did it
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
+      {/* Always render celebration so it persists across re-renders */}
       <SuperSaiyanCelebration
         open={showCelebration}
         onOpenChange={setShowCelebration}

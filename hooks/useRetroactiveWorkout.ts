@@ -40,7 +40,7 @@ export function useRetroactiveWorkout() {
       queryClient.invalidateQueries({ queryKey: ['comparison'] })
       queryClient.invalidateQueries({ queryKey: ['milestones'] })
 
-      toast.success(`Yesterday logged! +${data.pointsEarned} points`, {
+      toast.success(`Workout logged! +${data.pointsEarned} points`, {
         description: data.message,
       })
 
@@ -52,7 +52,7 @@ export function useRetroactiveWorkout() {
       }
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Failed to log yesterday's workout")
+      toast.error(error.message || "Failed to log workout")
 
       // Refetch to restore correct state
       queryClient.invalidateQueries({ queryKey: ['stats'] })

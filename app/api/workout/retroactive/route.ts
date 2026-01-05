@@ -43,6 +43,23 @@ export async function POST(request: Request) {
           { status: 400 }
         )
       }
+
+      // Validate 7-day window (accountability safeguard)
+      const todayParts = sydneyDates.today.split('-').map(Number)
+      const todayDateObj = new Date(
+        Date.UTC(todayParts[0], todayParts[1] - 1, todayParts[2])
+      )
+      const sevenDaysAgo = new Date(todayDateObj)
+      sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 7)
+      const sevenDaysAgoString = sevenDaysAgo.toISOString().split('T')[0]
+
+      if (workoutDate < sevenDaysAgoString) {
+        return NextResponse.json(
+          { error: 'Can only log workouts from the last 7 days' },
+          { status: 400 }
+        )
+      }
+
       targetDateString = workoutDate
     } else {
       // Calculate yesterday's date (pure date arithmetic to avoid timezone issues)
@@ -54,17 +71,17 @@ export async function POST(request: Request) {
       targetDateString = todayDateObj.toISOString().split('T')[0]
     }
 
-    const yesterdayString = targetDateString
+    const workoutDateString = targetDateString
 
-    // Calculate week start for yesterday's week (using UTC to avoid timezone shifts)
-    const yesterdayParts = yesterdayString.split('-').map(Number)
-    const yesterdayDateObj = new Date(
-      Date.UTC(yesterdayParts[0], yesterdayParts[1] - 1, yesterdayParts[2])
+    // Calculate week start for the workout's week (using UTC to avoid timezone shifts)
+    const workoutParts = workoutDateString.split('-').map(Number)
+    const workoutDateObj = new Date(
+      Date.UTC(workoutParts[0], workoutParts[1] - 1, workoutParts[2])
     )
-    const dayOfWeek = yesterdayDateObj.getUTCDay()
+    const dayOfWeek = workoutDateObj.getUTCDay()
     const daysToMonday = (dayOfWeek + 6) % 7
-    yesterdayDateObj.setUTCDate(yesterdayDateObj.getUTCDate() - daysToMonday)
-    const yesterdayWeekStartString = yesterdayDateObj
+    workoutDateObj.setUTCDate(workoutDateObj.getUTCDate() - daysToMonday)
+    const weekStartString = workoutDateObj
       .toISOString()
       .split('T')[0]
 
@@ -83,8 +100,8 @@ export async function POST(request: Request) {
 
     logger.debug('Retroactive Workout API - Calling transaction with:', {
       userId: user.id,
-      yesterdayString,
-      yesterdayWeekStartString,
+      workoutDateString,
+      weekStartString,
       pointsEarned,
       weeklyTarget,
     })
@@ -94,8 +111,8 @@ export async function POST(request: Request) {
       'log_retroactive_workout_transaction',
       {
         p_user_id: user.id,
-        p_workout_date: yesterdayString,
-        p_week_start_date: yesterdayWeekStartString,
+        p_workout_date: workoutDateString,
+        p_week_start_date: weekStartString,
         p_points_earned: pointsEarned,
         p_target_workouts: weeklyTarget,
       }
@@ -107,14 +124,14 @@ export async function POST(request: Request) {
       // Handle specific errors
       if (transactionError.message?.includes('already logged a workout')) {
         return NextResponse.json(
-          { error: 'You already logged a workout for yesterday!' },
+          { error: 'You already logged a workout for this date!' },
           { status: 400 }
         )
       }
 
-      if (transactionError.message?.includes('Can only log yesterday')) {
+      if (transactionError.message?.includes('Can only log workouts from the last 7 days')) {
         return NextResponse.json(
-          { error: "Can only log yesterday's workout" },
+          { error: 'Can only log workouts from the last 7 days' },
           { status: 400 }
         )
       }
@@ -148,15 +165,20 @@ export async function POST(request: Request) {
       return m
     })
 
+    // Format friendly date for message
+    const dateParts = workoutDateString.split('-')
+    const dateObj = new Date(Date.UTC(Number(dateParts[0]), Number(dateParts[1]) - 1, Number(dateParts[2])))
+    const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+
     return NextResponse.json({
       success: true,
       pointsEarned,
       workout: { id: result.workoutId },
       streak: result.currentStreak,
       milestones,
-      message: `Yesterday's workout logged! Streak: ${result.currentStreak} days`,
+      message: `Workout logged for ${formattedDate}! Streak: ${result.currentStreak} days`,
       debug: {
-        yesterdayWeekStartString,
+        weekStartString,
         goalCompleted: result.goalCompleted,
         goalId: result.goalId,
         totalWorkouts: result.totalWorkouts,

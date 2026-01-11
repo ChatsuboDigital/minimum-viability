@@ -63,11 +63,13 @@ BEGIN
 
   -- 4. Insert workout with custom timestamp (retroactive)
   -- Use 23:59:00 to mark as logged at end of day
-  INSERT INTO workouts (user_id, points_earned, completed_at)
+  -- Mark as retroactive for accountability tracking
+  INSERT INTO workouts (user_id, points_earned, completed_at, is_retroactive)
   VALUES (
     p_user_id,
     p_points_earned,
-    (p_workout_date || ' 23:59:00')::timestamp AT TIME ZONE 'Australia/Sydney'
+    (p_workout_date || ' 23:59:00')::timestamp AT TIME ZONE 'Australia/Sydney',
+    TRUE
   )
   RETURNING id INTO v_workout_id;
 

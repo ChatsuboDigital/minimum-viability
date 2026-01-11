@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -15,7 +15,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { useRetroactiveWorkout } from '@/hooks/useRetroactiveWorkout'
 import { Calendar, Clock } from 'lucide-react'
-import { format, subDays } from 'date-fns'
+import { format } from 'date-fns'
+import { createClient } from '@/lib/supabase/client'
 
 interface DatePickerWorkoutButtonProps {
   disabled?: boolean
@@ -27,6 +28,35 @@ export function DatePickerWorkoutButton({
   const { logRetroactiveWorkout, isLoading } = useRetroactiveWorkout()
   const [showConfirm, setShowConfirm] = useState(false)
   const [selectedDate, setSelectedDate] = useState('')
+  const [sydneyToday, setSydneyToday] = useState<string>('')
+  const [isLoadingDates, setIsLoadingDates] = useState(false)
+
+  // Fetch Sydney's current date when component mounts or dialog opens
+  useEffect(() => {
+    if (showConfirm && !sydneyToday) {
+      fetchSydneyDate()
+    }
+  }, [showConfirm, sydneyToday])
+
+  const fetchSydneyDate = async () => {
+    setIsLoadingDates(true)
+    try {
+      const supabase = createClient()
+      const { data, error } = await supabase.rpc('get_sydney_dates')
+
+      if (error) throw error
+
+      if (data?.today) {
+        setSydneyToday(data.today)
+      }
+    } catch (error) {
+      console.error('Error fetching Sydney date:', error)
+      // Fallback to browser's date if fetch fails
+      setSydneyToday(format(new Date(), 'yyyy-MM-dd'))
+    } finally {
+      setIsLoadingDates(false)
+    }
+  }
 
   const handleClick = () => {
     setShowConfirm(true)
@@ -42,14 +72,25 @@ export function DatePickerWorkoutButton({
   }
 
   const handleQuickSelect = (daysAgo: number) => {
-    const date = subDays(new Date(), daysAgo)
-    setSelectedDate(format(date, 'yyyy-MM-dd'))
+    if (!sydneyToday) return
+
+    // Calculate date using Sydney's today as reference
+    const sydneyDateParts = sydneyToday.split('-').map(Number)
+    const baseDate = new Date(Date.UTC(sydneyDateParts[0], sydneyDateParts[1] - 1, sydneyDateParts[2]))
+    baseDate.setUTCDate(baseDate.getUTCDate() - daysAgo)
+    const calculatedDate = baseDate.toISOString().split('T')[0]
+
+    setSelectedDate(calculatedDate)
   }
 
-  // Get max date (today) and min date (7 days ago for accountability)
-  const today = new Date()
-  const maxDate = format(today, 'yyyy-MM-dd')
-  const minDate = format(subDays(today, 7), 'yyyy-MM-dd')
+  // Get max date (today) and min date (7 days ago for accountability) using Sydney timezone
+  const maxDate = sydneyToday
+  const minDate = sydneyToday ? (() => {
+    const sydneyDateParts = sydneyToday.split('-').map(Number)
+    const baseDate = new Date(Date.UTC(sydneyDateParts[0], sydneyDateParts[1] - 1, sydneyDateParts[2]))
+    baseDate.setUTCDate(baseDate.getUTCDate() - 7)
+    return baseDate.toISOString().split('T')[0]
+  })() : ''
 
   // Quick select options
   const quickDates = [
@@ -97,21 +138,33 @@ export function DatePickerWorkoutButton({
                 Quick Select
               </p>
               <div className="grid grid-cols-3 gap-2">
-                {quickDates.map((quick) => (
-                  <Button
-                    key={quick.daysAgo}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuickSelect(quick.daysAgo)}
-                    className={`text-xs ${
-                      selectedDate === format(subDays(today, quick.daysAgo), 'yyyy-MM-dd')
-                        ? 'bg-blue-500/20 border-blue-500 text-blue-300'
-                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700'
-                    }`}
-                  >
-                    {quick.label}
-                  </Button>
-                ))}
+                {quickDates.map((quick) => {
+                  // Calculate expected date for this quick select option
+                  let expectedDate = ''
+                  if (sydneyToday) {
+                    const sydneyDateParts = sydneyToday.split('-').map(Number)
+                    const baseDate = new Date(Date.UTC(sydneyDateParts[0], sydneyDateParts[1] - 1, sydneyDateParts[2]))
+                    baseDate.setUTCDate(baseDate.getUTCDate() - quick.daysAgo)
+                    expectedDate = baseDate.toISOString().split('T')[0]
+                  }
+
+                  return (
+                    <Button
+                      key={quick.daysAgo}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleQuickSelect(quick.daysAgo)}
+                      disabled={isLoadingDates || !sydneyToday}
+                      className={`text-xs ${
+                        selectedDate === expectedDate
+                          ? 'bg-blue-500/20 border-blue-500 text-blue-300'
+                          : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700'
+                      }`}
+                    >
+                      {quick.label}
+                    </Button>
+                  )
+                })}
               </div>
             </div>
 
